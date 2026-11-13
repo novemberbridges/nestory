@@ -1,0 +1,1541 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Nestory</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: sticky header with search; tab bar under it on wide screens, fixed to the bottom on phones. */
+:root{
+  --bg:#f5f4ef; --surface:#ffffff; --surface2:#eeede6; --text:#1d2420; --muted:#66706a; --line:#dfddd4;
+  --accent:#2f6f5e; --accent-ink:#ffffff; --accent-soft:#e1eee8; --warn:#9a5c00; --warn-soft:#fff1d8;
+  --danger:#b3261e; --danger-soft:#fbe5e2; --ok:#2e7d32; --ok-soft:#e3f2e4; --scrim:rgba(20,24,22,.45);
+  --radius:12px; --shadow:0 1px 2px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131615; --surface:#1c201f; --surface2:#252a28; --text:#e7ebe9; --muted:#99a29d; --line:#323835;
+  --accent:#62b59d; --accent-ink:#0c1311; --accent-soft:#1e3530; --warn:#efb04c; --warn-soft:#3a2d16;
+  --danger:#f2867d; --danger-soft:#3b1f1d; --ok:#7cc883; --ok-soft:#1c3320; --scrim:rgba(0,0,0,.6); --shadow:none; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131615; --surface:#1c201f; --surface2:#252a28; --text:#e7ebe9; --muted:#99a29d; --line:#323835;
+  --accent:#62b59d; --accent-ink:#0c1311; --accent-soft:#1e3530; --warn:#efb04c; --warn-soft:#3a2d16;
+  --danger:#f2867d; --danger-soft:#3b1f1d; --ok:#7cc883; --ok-soft:#1c3320; --scrim:rgba(0,0,0,.6); --shadow:none; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--text)}
+body{font:15px/1.45 var(--font);-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+.hidden{display:none!important}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+
+/* header & nav */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px;margin:0 auto;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;gap:14px;align-items:center}
+.brand{font-weight:700;font-size:18px;white-space:nowrap;display:flex;flex-direction:column}
+.brand small{font-weight:500;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.brand small i{width:7px;height:7px;border-radius:50%;background:var(--ok);display:inline-block}
+.brand small.busy i{background:var(--warn)} .brand small.bad i{background:var(--danger)}
+.search{flex:1;position:relative;max-width:720px}
+.search input{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--line);border-radius:999px;background:var(--surface2);font-size:16px}
+.search input:focus{outline:2px solid var(--accent);background:var(--surface)}
+.search input#q{padding-left:38px;border-radius:999px;background:var(--surface2)}
+.search input#q:focus{background:var(--surface)}
+.search::before{content:"🔎";position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.7}
+nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;max-width:1180px;margin:0 auto;
+  padding-block:6px 8px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+nav::-webkit-scrollbar{display:none}
+nav button{border:0;background:none;padding:8px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;color:var(--muted);display:flex;gap:6px;align-items:center}
+nav button:hover{background:var(--surface2)}
+nav button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+nav .ic{font-size:15px} nav .sh{display:none}
+nav .cnt{background:var(--warn-soft);color:var(--warn);border-radius:999px;font-size:11px;font-weight:700;padding:0 6px}
+main{max-width:1180px;margin:0 auto;padding-block:18px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:22px;margin:4px 0 14px;text-wrap:balance}
+h2{font-size:18px;margin:22px 0 10px}
+h3{font-size:15px;margin:0 0 8px}
+.muted{color:var(--muted)} .small{font-size:13px}
+
+/* building blocks */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.pad{padding:14px 16px}
+.btn{border:1px solid var(--line);background:var(--surface);padding:9px 14px;border-radius:10px;cursor:pointer;min-height:40px;
+  display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--text);white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.danger{color:var(--danger);border-color:var(--danger-soft)}
+.btn.danger:hover{background:var(--danger-soft)}
+.btn.danger.solid{background:var(--danger);border-color:var(--danger);color:#fff;font-weight:600}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:8px;min-height:32px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;background:var(--surface2);font-size:12px;color:var(--muted)}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.badge.low,.badge.over{background:var(--danger-soft);color:var(--danger)}
+.badge.lent{background:var(--warn-soft);color:var(--warn)}
+.badge.ok{background:var(--ok-soft);color:var(--ok)}
+.alert{padding:12px 14px;border-radius:10px;margin:10px 0}
+.alert.warn{background:var(--warn-soft)} .alert.err{background:var(--danger-soft)} .alert.info{background:var(--accent-soft)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+code{font-size:12.5px;background:var(--surface2);padding:1px 5px;border-radius:5px;word-break:break-word}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat{padding:14px 16px}
+.stat .v{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat .l{color:var(--muted);font-size:13px}
+.stat.alertv .v{color:var(--danger)}
+
+.list{display:grid;gap:10px}
+.item{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 14px;cursor:pointer}
+.item:hover{border-color:var(--accent)}
+.thumb{width:64px;height:64px;border-radius:10px;object-fit:cover;background:var(--surface2)}
+.thumb.ph{display:grid;place-items:center;font-size:26px}
+.item .title{font-weight:650;font-size:16px;overflow-wrap:anywhere}
+.path{font-size:14px;margin:2px 0;overflow-wrap:anywhere}
+.meta{font-size:12.5px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.qty{text-align:right;min-width:62px}
+.qty .n{font-size:22px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.qty .u{font-size:12px;color:var(--muted)}
+.qty .badge{margin-top:4px}
+
+fieldset{border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px 14px;margin:0 0 12px;background:var(--surface);min-width:0}
+legend{padding:0 6px;font-weight:600;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.span2{grid-column:span 2}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--text);font-size:14px}
+input:not([type=checkbox]):not([type=radio]),select,textarea{padding:9px 10px;border:1px solid var(--line);border-radius:9px;
+  background:var(--surface);color:var(--text);font-size:16px;width:100%;min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.inrow{display:flex;gap:6px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.photos{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.ph-tile{position:relative;width:88px;height:88px}
+.ph-tile img{width:100%;height:100%;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.ph-tile button{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;border:0;
+  background:var(--danger);color:#fff;cursor:pointer;line-height:1;font-size:15px}
+.ph-tile .new{position:absolute;bottom:4px;left:4px;font-size:10px;background:var(--accent);color:var(--accent-ink);padding:1px 6px;border-radius:6px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px;max-width:100%}
+.seg button{border:0;background:var(--surface);padding:8px 14px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{background:var(--surface2);font-weight:600;font-size:12.5px;color:var(--muted);position:sticky;top:0;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td input.qin{width:90px;text-align:right;padding:5px 8px}
+tr.dirty td{background:var(--warn-soft)}
+.savebar{position:sticky;bottom:calc(12px + var(--navh,0px));margin-top:12px;display:flex;justify-content:flex-end}
+
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:minmax(80px,170px) 1fr 34px;gap:8px;align-items:center;font-size:13px}
+.bar .track{height:10px;background:var(--surface2);border-radius:6px;overflow:hidden}
+.bar .fill{height:100%;background:var(--accent);border-radius:6px;display:block}
+.bar .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .num{text-align:right;font-variant-numeric:tabular-nums}
+.cols2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+
+.locgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
+.panel{padding:12px}
+.panel h3{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.loclist{list-style:none;margin:0 0 10px;padding:0;max-height:360px;overflow:auto}
+.loclist li{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:8px;cursor:pointer}
+.loclist li:hover{background:var(--surface2)}
+.loclist li.sel{background:var(--accent-soft);font-weight:600}
+.loclist .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.loclist .cnt{font-size:12px;color:var(--muted);white-space:nowrap}
+.loclist .acts{display:flex;gap:2px}
+.loclist .acts button{border:0;background:none;cursor:pointer;padding:4px 7px;border-radius:6px;opacity:.65}
+.loclist .acts button:hover{opacity:1;background:var(--surface)}
+.panel textarea{min-height:70px;margin-bottom:6px}
+.tree ul{margin:4px 0 8px;padding-left:20px}
+.tree li{margin:2px 0}
+
+.modal{position:fixed;inset:0;background:var(--scrim);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto}
+.sheet{background:var(--bg);border-radius:16px;width:100%;max-width:860px;position:relative;padding:18px 18px 22px}
+.sheet .x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:18px;z-index:2}
+.hero{width:100%;max-height:420px;object-fit:contain;border-radius:12px;background:var(--surface2);display:block}
+.gal{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.gal img{width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid transparent}
+.gal img.on{border-color:var(--accent)}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;font-size:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;overflow-wrap:anywhere}
+.detail-top{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px}
+
+dialog#dlg{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--text);padding:18px;width:min(420px,calc(100vw - 32px))}
+dialog#dlg::backdrop{background:var(--scrim)}
+#dlgM{white-space:pre-line;margin:0 0 12px;color:var(--muted)}
+#dlg .actions{justify-content:flex-end;margin-top:12px}
+
+#toast{position:fixed;left:50%;bottom:calc(22px + var(--navh,0px) + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;display:grid;gap:8px;width:min(92vw,520px);pointer-events:none}
+#toast div{padding:11px 16px;border-radius:10px;background:var(--text);color:var(--bg);box-shadow:0 4px 16px rgba(0,0,0,.2);animation:pop .18s ease-out}
+#toast div.err{background:var(--danger);color:#fff}
+@keyframes pop{from{transform:translateY(8px);opacity:0}}
+@media (prefers-reduced-motion:reduce){#toast div{animation:none}}
+
+@media (max-width:760px){
+  :root{--navh:64px}
+  .top-in{flex-wrap:wrap;gap:8px 12px;padding-block:8px}
+  .search{flex-basis:100%;order:2}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:none;margin:0;background:var(--surface);border-top:1px solid var(--line);
+    display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;overflow:visible;
+    padding-block:4px calc(4px + env(safe-area-inset-bottom,0px));padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+  nav button{flex-direction:column;gap:1px;padding:6px 0;border-radius:10px;font-size:10.5px;position:relative;min-width:0}
+  nav button.on{background:none}
+  nav .ic{font-size:20px;line-height:1.1}
+  nav .lb{display:none} nav .sh{display:block;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  nav .cnt{position:absolute;top:2px;left:55%;font-size:10px;padding:0 5px}
+  main{padding-block:14px calc(90px + env(safe-area-inset-bottom,0px))}
+  .grid3,.locgrid,.cols2,.detail-top{grid-template-columns:minmax(0,1fr)}
+  .span2{grid-column:auto}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stats .stat:last-child:nth-child(odd){grid-column:1/-1}
+  .item{grid-template-columns:52px minmax(0,1fr) auto;gap:10px;padding:10px 12px}
+  .thumb{width:52px;height:52px}
+  .modal{padding:0}
+  .sheet{border-radius:0;min-height:100%;padding-top:calc(18px + env(safe-area-inset-top,0px));padding-bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+  .sheet .x{top:calc(10px + env(safe-area-inset-top,0px))}
+}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">🏠 Nestory<small id="sync"><i></i><span>Connecting…</span></small></div>
+    <div class="search"><input id="q" type="search" autocomplete="off" placeholder="Search any item, category, room or shelf…" aria-label="Search"></div>
+  </div>
+  <nav id="nav" aria-label="Sections"></nav>
+</header>
+<main id="view"><div class="card empty">Loading your inventory…</div></main>
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="sheet"><button class="x" data-close aria-label="Close">×</button><div id="modalBody"></div></div>
+</div>
+<dialog id="dlg">
+  <h3 id="dlgT"></h3>
+  <p id="dlgM"></p>
+  <input id="dlgIn" hidden>
+  <div class="actions"><button type="button" class="btn" id="dlgNo">Cancel</button><button type="button" class="btn primary" id="dlgOk">OK</button></div>
+</dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<datalist id="dl-units"></datalist><datalist id="dl-names"></datalist><datalist id="dl-borrowers"></datalist>
+
+<script>
+"use strict";
+/* ═════════════════════════ constants & helpers ═════════════════════════ */
+const DEFAULT_CATEGORIES = ["Kitchen","Bathroom","Clothing","Electronics","Tools","Medicines","Cleaning Supplies","Groceries",
+  "Toiletries","Stationery","Documents","Bedding & Linen","Sports & Outdoor","Decor","Miscellaneous"];
+const DEFAULT_UNITS = ["pcs","pair","set","box","pack","bottle","packet","kg","g","L","ml","m","roll","dozen"];
+const COLLS = ["floors","rooms","sections","items","loans"];
+const S = { tab: "dashboard", q: "", st: null, items: [], loans: [], selFloor: null, selRoom: null, lendTab: "active",
+            lendItem: null, itemsSort: "name", itemsCat: "", itemsFilter: "", stock: {}, importErrors: null };
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fq = n => n == null ? "—" : (Number.isInteger(+n) ? String(+n) : String(+(+n).toFixed(3)));
+const nice = d => d ? new Date(d + "T00:00:00").toLocaleDateString("en-GB", {day:"2-digit", month:"short", year:"numeric"}) : "—";
+const pad = n => String(n).padStart(2, "0");
+const localDate = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const nowStr = () => { const d = new Date(); return `${localDate(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
+const today = () => localDate();
+const addDays = (iso, n) => { const d = new Date(iso + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+const daysBetween = (a, b) => Math.round((new Date(b + "T00:00:00Z") - new Date(a + "T00:00:00Z")) / 864e5);
+const low = s => String(s ?? "").toLowerCase();
+const byName = (a, b) => a.name.localeCompare(b.name, undefined, {sensitivity: "base"});
+const store = { get(k){ try { return localStorage.getItem(k); } catch { return null; } },
+                set(k, v){ try { localStorage.setItem(k, v); } catch {} } };
+const CAT_ICON = {Kitchen:"🍳",Bathroom:"🛁",Clothing:"👕",Electronics:"🔌",Tools:"🔧",Medicines:"💊","Cleaning Supplies":"🧽",
+  Groceries:"🥫",Toiletries:"🧴",Stationery:"✏️",Documents:"📄","Bedding & Linen":"🛏️","Sports & Outdoor":"⚽",Decor:"🖼️",Miscellaneous:"📦"};
+const icon = c => CAT_ICON[c] || "📦";
+const blobUrl = id => "/_blob/" + id;
+const kb = n => n > 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
+
+function E(status, msg) { const e = new Error(msg); e.status = status; return e; }
+function text(v, label, required = false, max = 500) {
+  const s = (v == null ? "" : String(v)).trim();
+  if (required && !s) throw E(400, `${label} is required.`);
+  if (s.length > max) throw E(400, `${label || "Text"} is too long.`);
+  return s || null;
+}
+function number(v, label, required = false, minimum = 0) {
+  if (v == null || String(v).trim() === "") { if (required) throw E(400, `${label} is required.`); return null; }
+  const n = Number(String(v).trim());
+  if (!Number.isFinite(n)) throw E(400, `${label} must be a number.`);
+  if (minimum != null && n < minimum) throw E(400, `${label} cannot be negative.`);
+  return n;
+}
+function isoDate(v, label = "Date") {
+  const s = text(v);
+  if (!s) return null;
+  let y, m, d, r;
+  if ((r = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/))) [, y, m, d] = r;
+  else if ((r = s.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/))) [, d, m, y] = r;
+  else throw E(400, `${label} “${s}” is not a valid date (use YYYY-MM-DD).`);
+  const dt = new Date(Date.UTC(+y, +m - 1, +d));
+  if (dt.getUTCFullYear() !== +y || dt.getUTCMonth() !== +m - 1 || dt.getUTCDate() !== +d)
+    throw E(400, `${label} “${s}” is not a valid date (use YYYY-MM-DD).`);
+  return `${y}-${pad(+m)}-${pad(+d)}`;
+}
+let lastId = 0;
+const nid = () => { let id = Date.now() * 1000 + Math.floor(Math.random() * 1000); if (id <= lastId) id = lastId + 1; return (lastId = id); };
+
+/* ═════════════════════════ storage (claude.ai artifact database) ═════════════════════════ */
+const DB = { floors: new Map(), rooms: new Map(), sections: new Map(), items: new Map(), loans: new Map() };
+let CATS = { custom: [], hidden: [] };
+const cap = { db: null, assets: null, downloads: null };
+let ready = false, readOnly = false;
+const loaded = new Set();
+const all = c => [...DB[c].values()];
+const get = (c, id) => id == null ? undefined : DB[c].get(String(id));
+const stable = o => JSON.stringify(o, (k, v) => v && typeof v === "object" && !Array.isArray(v)
+  ? Object.keys(v).sort().reduce((r, x) => (r[x] = v[x], r), {}) : v);
+
+const Q = { running: 0, waiting: [], pending: 0, chain: new Map(), lastErr: 0 };
+function limit(fn) {
+  return new Promise((res, rej) => {
+    const run = () => { Q.running++; fn().then(res, rej).finally(() => { Q.running--; Q.waiting.shift()?.(); }); };
+    Q.running < 4 ? run() : Q.waiting.push(run);
+  });
+}
+async function withRetry(fn) {
+  try { return await fn(); }
+  catch (e) { if (e?.code !== "unavailable") throw e; await new Promise(r => setTimeout(r, 400 + Math.random() * 800)); return fn(); }
+}
+function dbMsg(e) {
+  switch (e?.code) {
+    case "invalid_argument": return "You can look at this inventory but not change it. Ask the owner for Editor access.";
+    case "quota_exceeded": return "Storage is full: " + (e.message || "delete some records and try again.");
+    case "resource_exhausted": return "Too many changes at once. Wait a moment and try again.";
+    case "revoked": return "Access to this inventory has changed. Reload the page.";
+    default: return "A change couldn't be saved. Check your connection and try again.";
+  }
+}
+function syncUI() {
+  const el = $("#sync"); if (!el) return;
+  el.className = !cap.db ? "bad" : Q.pending ? "busy" : readOnly ? "bad" : "";
+  $("span", el).textContent = !cap.db ? (ready ? "Offline" : "Connecting…") : Q.pending ? `Saving ${Q.pending}…` : readOnly ? "View only" : ready ? "All changes saved" : "Loading…";
+}
+/** Queue one write (set or delete). The local copy changes immediately; the cloud copy follows. */
+function write(path, data) {
+  Q.pending++; syncUI();
+  const prev = Q.chain.get(path) || Promise.resolve();
+  const p = prev.catch(() => {}).then(() => limit(() => withRetry(() => data === null ? cap.db.doc(path).delete() : cap.db.doc(path).set(data))));
+  Q.chain.set(path, p);
+  p.catch(e => {
+    if (e?.code === "invalid_argument") readOnly = true;
+    if (Date.now() - Q.lastErr > 4000) { Q.lastErr = Date.now(); toast(dbMsg(e), "err"); }
+  }).finally(() => { Q.pending--; if (Q.chain.get(path) === p) Q.chain.delete(path); syncUI(); });
+  return p;
+}
+function put(c, obj) { if (readOnly) throw E(403, dbMsg({code: "invalid_argument"})); DB[c].set(String(obj.id), obj); return write(`${c}/${obj.id}`, obj); }
+function del(c, id) { if (readOnly) throw E(403, dbMsg({code: "invalid_argument"})); DB[c].delete(String(id)); return write(`${c}/${id}`, null); }
+function saveCats(next) { if (readOnly) throw E(403, dbMsg({code: "invalid_argument"})); CATS = next; return write("settings/categories", next); }
+
+/* ═════════════════════════ derived views (what the screens read) ═════════════════════════ */
+function categoryList() {
+  const hid = new Set(CATS.hidden.map(low)), seen = new Map();
+  for (const c of [...DEFAULT_CATEGORIES.filter(c => !hid.has(low(c))), ...CATS.custom, ...all("items").map(i => i.category).filter(Boolean)])
+    if (!seen.has(low(c))) seen.set(low(c), c);
+  return [...seen.values()].sort((a, b) => a.localeCompare(b, undefined, {sensitivity: "base"}));
+}
+function canonCategory(name) {
+  const hit = categoryList().find(c => low(c) === low(name));
+  if (hit) return hit;
+  saveCats({ custom: [...CATS.custom, name], hidden: CATS.hidden.filter(h => low(h) !== low(name)) });
+  return name;
+}
+function itemView(it) {
+  const s = get("sections", it.section_id), r = s && get("rooms", s.room_id), f = r && get("floors", r.floor_id);
+  const on_loan = all("loans").filter(l => l.item_id === it.id && l.status === "Active").reduce((n, l) => n + (+l.quantity || 0), 0);
+  const photos = Array.isArray(it.photos) ? it.photos : [];
+  const v = { ...it, category: it.category || "Uncategorised", min_quantity: it.min_quantity ?? null,
+    floor: f?.name ?? "?", room: r?.name ?? "?", section: s?.name ?? "?", floor_id: f?.id ?? null, room_id: r?.id ?? null,
+    floor_order: f?.sort_order ?? 0, on_loan, photos, photo_count: photos.length, first_photo: photos[0]?.th ?? null };
+  v.path = `${v.floor} › ${v.room} › ${v.section}`;
+  v.low = v.min_quantity != null && v.quantity <= v.min_quantity;
+  return v;
+}
+function reload() {
+  const rooms = all("rooms"), secs = all("sections"), items = all("items"), loans = all("loans");
+  const units = [...new Set(items.map(i => i.unit).filter(Boolean))].sort();
+  S.st = {
+    floors: all("floors").map(f => ({ ...f, n: rooms.filter(r => r.floor_id === f.id).length }))
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || byName(a, b)),
+    rooms: rooms.map(r => ({ ...r, n: secs.filter(s => s.room_id === r.id).length })).sort(byName),
+    sections: secs.map(s => ({ ...s, n: items.filter(i => i.section_id === s.id).length })).sort(byName),
+    categories: categoryList(),
+    units: [...DEFAULT_UNITS, ...units.filter(u => !DEFAULT_UNITS.includes(u))],
+    borrowers: [...new Set(loans.map(l => l.borrower))].sort(),
+    today: today(),
+  };
+  S.items = items.map(itemView).sort(byName);
+  S.loans = loans.sort((a, b) => (a.status === b.status ? 0 : a.status === "Active" ? -1 : 1)
+    || (!a.expected_return) - (!b.expected_return) || String(a.expected_return || "").localeCompare(String(b.expected_return || ""))
+    || String(b.date_lent).localeCompare(String(a.date_lent)));
+  $("#dl-units").innerHTML = S.st.units.map(u => `<option value="${esc(u)}">`).join("");
+  $("#dl-names").innerHTML = [...new Set(S.items.map(i => i.name))].map(n => `<option value="${esc(n)}">`).join("");
+  $("#dl-borrowers").innerHTML = S.st.borrowers.map(b => `<option value="${esc(b)}">`).join("");
+}
+async function refresh() { reload(); render(); }
+
+/* ═════════════════════════ actions (same routes as the PC version) ═════════════════════════ */
+function itemFields(d) {
+  const name = text(d.name, "Item name", true, 200);
+  const sid = number(d.section_id, "Storage section", true);
+  if (!get("sections", sid)) throw E(400, "Please choose a valid storage section.");
+  const cat = text(d.category, "Category", true, 80);
+  const f = { name, section_id: sid, quantity: number(d.quantity, "Quantity", true), unit: text(d.unit, "Unit", false, 30) || "pcs",
+    min_quantity: number(d.min_quantity, "Low-stock level"),
+    last_update_date: isoDate(d.last_update_date, "Last update date"),
+    last_purchase_date: isoDate(d.last_purchase_date, "Last payment / purchase date"), notes: text(d.notes, "Notes", false, 4000) };
+  f.category = canonCategory(cat);  // last, so a validation error never leaves a stray new category behind
+  return f;
+}
+function mustItem(id) { const it = get("items", id); if (!it) throw E(404, "Item not found."); return it; }
+function sibling(level, name, parentId, selfId) {
+  const pk = level === "rooms" ? "floor_id" : level === "sections" ? "room_id" : null;
+  return all(level).find(x => x.id !== selfId && low(x.name) === low(name) && (!pk || x[pk] === parentId));
+}
+const LEVELS = { floors: { child: "rooms", fk: "floor_id", label: "floor", childLabel: "room" },
+                 rooms: { child: "sections", fk: "room_id", label: "room", childLabel: "storage section" },
+                 sections: { child: "items", fk: "section_id", label: "storage section", childLabel: "item" } };
+
+async function uploadJpeg(blob) {
+  if (!cap.assets) throw E(403, "Only the owner or an editor can add photos.");
+  const go = () => cap.assets.upload(blob, { type: "image/jpeg" });
+  try { return await go(); }
+  catch (e) {
+    if (e?.code === "store_unavailable") { await new Promise(r => setTimeout(r, 800)); return go(); }
+    throw E(400, e?.code === "too_large" ? "That photo is too large." : e?.code === "quota_or_state" ? "Photo storage is full. Delete some photos and try again."
+      : e?.code === "rate_limited" ? "Too many uploads at once. Wait a moment and try again." : "The photo couldn't be uploaded. Check your connection.");
+  }
+}
+function dropAssets(photos) {
+  if (!cap.assets) return;
+  for (const p of photos || []) for (const id of [p.img, p.th]) if (id) cap.assets.delete(id).catch(() => {});
+}
+
+const ROUTES = [
+  ["GET", /^\/api\/items\/(\d+)$/, (id) => {
+    const it = itemView(mustItem(id));
+    it.loans = all("loans").filter(l => l.item_id === it.id).sort((a, b) => String(b.date_lent).localeCompare(String(a.date_lent)));
+    return it;
+  }],
+  ["POST", /^\/api\/items$/, (d) => {
+    const f = itemFields(d);
+    const dup = all("items").find(i => i.section_id === f.section_id && low(i.name) === low(f.name));
+    if (dup && !d.force_new) {
+      put("items", { ...dup, quantity: (+dup.quantity || 0) + f.quantity, last_update_date: f.last_update_date || today(),
+        last_purchase_date: f.last_purchase_date || dup.last_purchase_date || null, modified_at: nowStr() });
+      return { id: dup.id, merged: true };
+    }
+    const ts = nowStr(), o = { id: nid(), ...f, photos: [], created_at: ts, modified_at: ts };
+    put("items", o);
+    return { id: o.id, merged: false };
+  }],
+  ["PUT", /^\/api\/items\/(\d+)$/, (id, d) => {
+    const old = mustItem(id), f = itemFields(d);
+    if (f.quantity !== old.quantity && f.last_update_date === (old.last_update_date ?? null)) f.last_update_date = today();
+    put("items", { ...old, ...f, modified_at: nowStr() });
+  }],
+  ["POST", /^\/api\/items\/(\d+)\/adjust$/, (id, d) => {
+    const delta = number(d.delta, "Change", true, null), it = mustItem(id);
+    if (it.quantity + delta < 0) throw E(400, `Only ${fq(it.quantity)} ${it.unit} in stock.`);
+    put("items", { ...it, quantity: it.quantity + delta, last_update_date: today(), modified_at: nowStr() });
+    return { quantity: it.quantity + delta };
+  }],
+  ["DELETE", /^\/api\/items\/(\d+)$/, (id) => {
+    const it = mustItem(id);
+    for (const l of all("loans").filter(l => l.item_id === it.id)) put("loans", { ...l, item_id: null });
+    del("items", it.id);
+    dropAssets(it.photos);
+  }],
+  ["POST", /^\/api\/stock$/, (d) => {
+    const changes = d.changes || [];
+    for (const ch of changes) {
+      const q = number(ch.quantity, "Quantity", true), it = mustItem(ch.id);
+      if (it.quantity !== q) put("items", { ...it, quantity: q, last_update_date: today(), modified_at: nowStr() });
+    }
+    return { updated: changes.length };
+  }],
+  ["POST", /^\/api\/items\/(\d+)\/photos$/, async (id, d) => {
+    mustItem(id);
+    const a = await uploadJpeg(d.image), t = await uploadJpeg(d.thumb);
+    const it = mustItem(id);  // re-read: the item may have changed during the upload
+    put("items", { ...it, photos: [...(it.photos || []), { img: a.id, th: t.id }], modified_at: nowStr() });
+    return { id: a.id };
+  }],
+  ["DELETE", /^\/api\/items\/(\d+)\/photos\/(\d+)$/, (id, idx) => {
+    const it = mustItem(id), photos = [...(it.photos || [])], [gone] = photos.splice(+idx, 1);
+    if (!gone) throw E(404, "Photo not found.");
+    put("items", { ...it, photos, modified_at: nowStr() });
+    dropAssets([gone]);
+  }],
+  ["POST", /^\/api\/locations\/(floors|rooms|sections)$/, (level, d) => {
+    const meta = LEVELS[level];
+    const names = (d.names || []).map(n => String(n).trim()).filter(Boolean);
+    if (!names.length) throw E(400, `Type at least one ${meta.label} name.`);
+    let pid = null;
+    if (level !== "floors") {
+      pid = number(d.parent_id, "Parent", true);
+      if (!get(level === "rooms" ? "floors" : "rooms", pid)) throw E(400, "Parent location not found.");
+    }
+    let base = Math.max(0, ...all("floors").map(f => f.sort_order || 0)), added = 0;
+    const dups = [];
+    for (const nm of names) {
+      if (nm.length > 120) throw E(400, "Name too long.");
+      if (sibling(level, nm, pid)) { dups.push(nm); continue; }
+      const o = level === "floors" ? { id: nid(), name: nm, sort_order: ++base }
+        : level === "rooms" ? { id: nid(), floor_id: pid, name: nm } : { id: nid(), room_id: pid, name: nm };
+      put(level, o); added++;
+    }
+    return { added, duplicates: dups };
+  }],
+  ["PUT", /^\/api\/locations\/(floors|rooms|sections)\/(\d+)$/, (level, id, d) => {
+    const cur = get(level, id); if (!cur) throw E(404, "Location not found.");
+    const name = text(d.name, "Name", true, 120);
+    if (sibling(level, name, cur.floor_id ?? cur.room_id ?? null, cur.id)) throw E(409, "That name already exists here.");
+    put(level, { ...cur, name });
+  }],
+  ["POST", /^\/api\/locations\/floors\/(\d+)\/move$/, (id, d) => {
+    const ids = S.st.floors.map(f => f.id), i = ids.indexOf(+id), j = i + (+d.dir < 0 ? -1 : 1);
+    if (i < 0 || j < 0 || j >= ids.length) return;
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+    ids.forEach((fid, k) => { const f = get("floors", fid); if (f.sort_order !== k + 1) put("floors", { ...f, sort_order: k + 1 }); });
+  }],
+  ["DELETE", /^\/api\/locations\/(floors|rooms|sections)\/(\d+)$/, (level, id) => {
+    const meta = LEVELS[level], n = all(meta.child).filter(x => x[meta.fk] === +id).length;
+    if (n) throw E(409, `It still contains ${n} ${meta.childLabel}(s). Move or delete those first.`);
+    del(level, id);
+  }],
+  ["POST", /^\/api\/categories\/rename$/, (d) => {
+    const old = text(d.old, "Category", true), nw = text(d.new, "New name", true, 80);
+    const existing = categoryList().find(c => low(c) === low(nw) && low(c) !== low(old));
+    const target = existing || nw;
+    for (const it of all("items").filter(i => low(i.category) === low(old))) put("items", { ...it, category: target, modified_at: nowStr() });
+    const isDef = c => DEFAULT_CATEGORIES.some(x => low(x) === low(c));
+    let hidden = CATS.hidden.filter(h => low(h) !== low(target)), custom = CATS.custom.filter(c => low(c) !== low(old) && low(c) !== low(target));
+    if (isDef(old) && low(old) !== low(target)) hidden.push(old);
+    if (!isDef(target)) custom.push(target);
+    saveCats({ custom, hidden });
+  }],
+  ["POST", /^\/api\/loans$/, (d) => {
+    const item_id = d.item_id ? +d.item_id : null;
+    const qty = number(d.quantity, "Quantity", true);
+    if (qty <= 0) throw E(400, "Quantity must be more than zero.");
+    const borrower = text(d.borrower, "Borrower name", true, 120);
+    const dl = isoDate(d.date_lent, "Date lent") || today(), er = isoDate(d.expected_return, "Expected return date");
+    if (er && er < dl) throw E(400, "Expected return date is before the lending date.");
+    const deduct = !!d.deduct && item_id != null;
+    let name;
+    if (item_id != null) {
+      const it = get("items", item_id); if (!it) throw E(400, "Item not found.");
+      name = it.name;
+      if (deduct && qty > it.quantity) throw E(400, `Only ${fq(it.quantity)} ${it.unit} in stock.`);
+      if (deduct) put("items", { ...it, quantity: it.quantity - qty, last_update_date: today(), modified_at: nowStr() });
+    } else name = text(d.item_name, "Item name", true, 200);
+    const o = { id: nid(), item_id, item_name: name, quantity: qty, borrower, contact: text(d.contact, "Contact", false, 120),
+      date_lent: dl, expected_return: er, returned_on: null, status: "Active", stock_deducted: deduct ? 1 : 0, notes: text(d.notes, "Notes", false, 1000) };
+    put("loans", o);
+    return { id: o.id };
+  }],
+  ["POST", /^\/api\/loans\/(\d+)\/return$/, (id) => {
+    const ln = get("loans", id); if (!ln) throw E(404, "Loan record not found.");
+    if (ln.status === "Returned") return { restored: false };
+    let restored = false;
+    const it = ln.stock_deducted && get("items", ln.item_id);
+    if (it) { put("items", { ...it, quantity: it.quantity + ln.quantity, last_update_date: today(), modified_at: nowStr() }); restored = true; }
+    put("loans", { ...ln, status: "Returned", returned_on: today() });
+    return { restored };
+  }],
+  ["PUT", /^\/api\/loans\/(\d+)$/, (id, d) => {
+    const ln = get("loans", id); if (!ln) throw E(404, "Loan record not found.");
+    const er = isoDate(d.expected_return, "Expected return date");
+    if (er && er < ln.date_lent) throw E(400, "Expected return date is before the lending date.");
+    put("loans", { ...ln, expected_return: er });
+  }],
+  ["DELETE", /^\/api\/loans\/(\d+)$/, (id) => {
+    const ln = get("loans", id); if (!ln) throw E(404, "Loan record not found.");
+    const it = ln.status === "Active" && ln.stock_deducted && get("items", ln.item_id);
+    if (it) put("items", { ...it, quantity: it.quantity + ln.quantity });
+    del("loans", ln.id);
+  }],
+];
+async function api(method, url, body) {
+  if (!ready) throw E(503, "Still loading your inventory. Try again in a moment.");
+  for (const [m, rx, fn] of ROUTES) {
+    const mt = method === m && url.match(rx);
+    if (mt) { const r = await fn(...mt.slice(1), body || {}); return r ?? { ok: true }; }
+  }
+  throw E(404, "Not found");
+}
+
+/* ═════════════════════════ UI shell ═════════════════════════ */
+function toast(msg, kind = "ok") {
+  const el = document.createElement("div");
+  el.className = kind; el.textContent = msg;
+  $("#toast").append(el);
+  while ($("#toast").children.length > 3) $("#toast").firstElementChild.remove();
+  setTimeout(() => el.remove(), kind === "err" ? 6000 : 3200);
+}
+/** In-page replacement for confirm()/prompt(), which artifact pages can't show. */
+function ask({ title, message = "", ok = "OK", danger = false, input = null }) {
+  return new Promise(res => {
+    const d = $("#dlg"), inp = $("#dlgIn"), okb = $("#dlgOk");
+    $("#dlgT").textContent = title;
+    $("#dlgM").textContent = message; $("#dlgM").hidden = !message;
+    inp.hidden = !input;
+    if (input) { inp.type = input.type || "text"; inp.value = input.value ?? ""; inp.placeholder = input.placeholder || ""; }
+    okb.textContent = ok; okb.className = "btn " + (danger ? "danger solid" : "primary");
+    let done = false;
+    const finish = v => { if (done) return; done = true; if (d.open) d.close(); res(v); };
+    okb.onclick = () => finish(input ? inp.value : true);
+    $("#dlgNo").onclick = () => finish(input ? null : false);
+    inp.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); finish(inp.value); } };
+    d.oncancel = e => { e.preventDefault(); finish(input ? null : false); };
+    d.showModal();
+    setTimeout(() => (input ? inp : okb).focus(), 30);
+  });
+}
+async function act(fn, okMsg) {
+  try {
+    const r = await fn();
+    await refresh();
+    if (okMsg) toast(typeof okMsg === "function" ? okMsg(r) : okMsg);
+    return r ?? true;
+  } catch (e) { toast(e.message, "err"); return null; }
+}
+
+const TABS = [["dashboard","🏠","Home","Home"],["add","➕","Add item","Add"],["items","📋","Items","Items"],["stock","📦","Stock","Stock"],
+              ["locations","📍","Locations","Places"],["lending","🤝","Lending","Lend"],["data","💾","Backup & data","Backup"]];
+function go(tab) { S.tab = tab; S.q = ""; $("#q").value = ""; reload(); render(); window.scrollTo(0, 0); }
+const activeLoans = () => S.loans.filter(l => l.status === "Active");
+const overdueLoans = () => activeLoans().filter(l => l.expected_return && l.expected_return < today());
+
+function render() {
+  const nAct = S.st ? activeLoans().length : 0;
+  $("#nav").innerHTML = TABS.map(([k, ic, l, sh]) =>
+    `<button data-tab="${k}" class="${k === S.tab && !S.q ? "on" : ""}" aria-label="${l}"><span class="ic">${ic}</span><span class="lb">${l}</span><span class="sh">${sh}</span>${k === "lending" && nAct ? `<span class="cnt">${nAct}</span>` : ""}</button>`).join("");
+  const v = $("#view");
+  v.onclick = v.oninput = null;
+  if (!ready) return;
+  if (S.q.trim()) return renderSearch(v);
+  ({dashboard: renderDashboard, add: renderAdd, items: renderItems, stock: renderStock,
+    locations: renderLocations, lending: renderLending, data: renderData})[S.tab](v);
+  if (readOnly) v.insertAdjacentHTML("afterbegin", `<div class="alert warn">👀 You can look at this inventory but not change it. Ask the owner for Editor access to make changes.</div>`);
+}
+
+function itemCard(it) {
+  const img = it.first_photo ? `<img class="thumb" loading="lazy" src="${blobUrl(it.first_photo)}" alt="">` : `<div class="thumb ph">${icon(it.category)}</div>`;
+  return `<div class="card item" data-open="${it.id}">
+    ${img}
+    <div style="min-width:0">
+      <div class="title">${esc(it.name)}</div>
+      <div class="path">📍 ${esc(it.floor)} › ${esc(it.room)} › <b>${esc(it.section)}</b></div>
+      <div class="meta"><span class="tag">${esc(it.category)}</span>
+        <span title="Last update date">🔄 ${nice(it.last_update_date)}</span>
+        <span title="Last payment / purchase date">🧾 ${nice(it.last_purchase_date)}</span>
+        ${it.photo_count ? `<span>📷 ${it.photo_count}</span>` : ""}</div>
+    </div>
+    <div class="qty"><div class="n">${fq(it.quantity)}</div><div class="u">${esc(it.unit)}</div>
+      ${it.low ? `<span class="badge low">Low</span>` : ""}
+      ${it.on_loan ? `<div><span class="badge lent">${fq(it.on_loan)} lent</span></div>` : ""}</div>
+  </div>`;
+}
+
+/* ═════════════════════════ search ═════════════════════════ */
+function searchItems(q) {
+  const toks = q.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!toks.length) return [];
+  return S.items.filter(i => toks.every(t => `${i.name} ${i.category} ${i.path} ${i.notes || ""}`.toLowerCase().includes(t)))
+    .sort((a, b) => (b.name.toLowerCase().startsWith(toks[0])) - (a.name.toLowerCase().startsWith(toks[0])) || byName(a, b));
+}
+function renderSearch(v) {
+  const q = S.q.trim(), res = searchItems(q), ql = q.toLowerCase();
+  const loans = S.loans.filter(l => low(l.item_name).includes(ql) || low(l.borrower).includes(ql));
+  v.innerHTML = `<h1>🔎 ${res.length} result${res.length === 1 ? "" : "s"} for “${esc(q)}”</h1>
+    ${res.length ? `<div class="list">${res.slice(0, 100).map(itemCard).join("")}</div>`
+      : `<div class="card empty">No items match. Try fewer words, or search by room, shelf or category.</div>`}
+    ${loans.length ? `<h2>🤝 Lending records</h2>${loanTable(loans)}` : ""}`;
+}
+
+/* ═════════════════════════ dashboard ═════════════════════════ */
+function bars(entries) {
+  const max = Math.max(1, ...entries.map(e => e[1]));
+  return `<div class="bars">${entries.map(([k, n]) =>
+    `<div class="bar"><span class="nm" title="${esc(k)}">${esc(k)}</span><span class="track"><span class="fill" style="width:${n / max * 100}%"></span></span><span class="num">${n}</span></div>`).join("")}</div>`;
+}
+const countBy = (arr, f) => Object.entries(arr.reduce((m, x) => (m[f(x)] = (m[f(x)] || 0) + 1, m), {})).sort((a, b) => b[1] - a[1]);
+
+function renderDashboard(v) {
+  const it = S.items, lowI = it.filter(i => i.low), over = overdueLoans(), nSec = S.st.sections.length;
+  let html = `<h1>Home overview</h1><div class="stats">
+    <div class="card stat"><div class="v">${it.length}</div><div class="l">Items</div></div>
+    <div class="card stat"><div class="v">${new Set(it.map(i => i.category)).size}</div><div class="l">Categories in use</div></div>
+    <div class="card stat"><div class="v">${nSec}</div><div class="l">Storage sections</div></div>
+    <div class="card stat"><div class="v">${activeLoans().length}</div><div class="l">Things lent out</div></div>
+    <div class="card stat ${lowI.length ? "alertv" : ""}"><div class="v">${lowI.length}</div><div class="l">Low stock</div></div></div>`;
+  if (!nSec) {
+    html += `<div class="alert info"><b>Welcome! Three steps to get started:</b><ol>
+      <li><a href="#" data-go="locations">📍 Locations</a>: add your floors, then rooms, then storage sections (wardrobe shelf, pantry cabinet…).</li>
+      <li><a href="#" data-go="add">➕ Add item</a>: choose where it's kept, its quantity, category and photos if you like.</li>
+      <li>Use the <b>search bar</b> at the top to find anything instantly.</li></ol>
+      Moving over from the PC version? Export <b>Items as CSV</b> there, then use <a href="#" data-go="data">💾 Backup → Bulk import</a> here.</div>`;
+    v.innerHTML = html; return;
+  }
+  if (over.length) html += `<div class="alert err">⏰ <b>${over.length} overdue loan${over.length > 1 ? "s" : ""}:</b> ${over.map(l =>
+      `${esc(l.item_name)}, ${esc(l.borrower)} (due ${nice(l.expected_return)})`).join("; ")} · <a href="#" data-go="lending">Open lending</a></div>`;
+  if (lowI.length) html += `<div class="alert warn">⚠️ <b>Running low:</b> ${lowI.map(i =>
+      `<a href="#" data-open="${i.id}">${esc(i.name)}</a> (${fq(i.quantity)} ${esc(i.unit)})`).join(", ")}</div>`;
+  if (!it.length) { html += `<div class="card empty">No items yet. <a href="#" data-go="add">Add your first item</a>.</div>`; v.innerHTML = html; return; }
+  html += `<div class="cols2" style="margin-top:14px">
+    <div class="card pad"><h3>Items by category</h3>${bars(countBy(it, i => i.category).slice(0, 12))}</div>
+    <div class="card pad"><h3>Items by room</h3>${bars(countBy(it, i => `${i.floor} · ${i.room}`).slice(0, 12))}</div></div>
+    <h2>🕒 Recently updated</h2><div class="list">${[...it].sort((a, b) => String(b.modified_at).localeCompare(String(a.modified_at))).slice(0, 6).map(itemCard).join("")}</div>`;
+  v.innerHTML = html;
+}
+
+/* ═════════════════════════ photos (shrunk on the phone before upload) ═════════════════════════ */
+function loadImg(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => res({ img, url });
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error(`Can't read “${file.name}”. Try a JPG or PNG.`)); };
+    img.src = url;
+  });
+}
+function toJpeg(img, max, q) {
+  const w = img.naturalWidth, h = img.naturalHeight, s = Math.min(1, max / Math.max(w, h));
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, Math.round(w * s)); c.height = Math.max(1, Math.round(h * s));
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  return new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error("Couldn't process that photo.")), "image/jpeg", q));
+}
+async function processFile(file) {
+  const { img, url } = await loadImg(file);
+  try {
+    const image = await toJpeg(img, 1280, 0.82), thumb = await toJpeg(img, 320, 0.75);
+    return { image, thumb, preview: URL.createObjectURL(thumb) };
+  } finally { URL.revokeObjectURL(url); }
+}
+
+/* ═════════════════════════ item form (add & edit) ═════════════════════════ */
+function itemForm(el, item, onSaved, onCancel) {
+  const st = S.st, pending = [], cats = st.categories;
+  const catSel = item ? item.category : (store.get("lastCategory") || "");
+  el.innerHTML = `<form class="itemform" novalidate>
+    <fieldset><legend>1 · Where is it stored?</legend>
+      <div class="grid3">
+        <label>🏢 Floor<select name="floor" id="f-floor"></select></label>
+        <label>🚪 Room<select name="room" id="f-room"></select></label>
+        <label>🗄️ Storage section<select name="section_id" id="f-section"></select></label>
+      </div>
+      <div class="small muted lochint" style="margin-top:6px"></div>
+    </fieldset>
+    <fieldset><legend>2 · What is it?</legend>
+      <div class="grid">
+        <label class="span2">Item name *<input name="name" id="f-name" list="dl-names" maxlength="200" placeholder="e.g. Basmati rice, HDMI cable, Paracetamol" value="${esc(item?.name)}"></label>
+        <label>Quantity *<input name="quantity" id="f-qty" type="number" min="0" step="any" inputmode="decimal" value="${item ? fq(item.quantity) : 1}"></label>
+        <label>Unit<input name="unit" id="f-unit" list="dl-units" maxlength="30" value="${esc(item?.unit || "pcs")}"></label>
+        <label>Category *<select name="category" id="f-cat">
+            ${cats.map(c => `<option ${c === catSel ? "selected" : ""}>${esc(c)}</option>`).join("")}
+            ${item && !cats.includes(item.category) ? `<option selected>${esc(item.category)}</option>` : ""}
+            <option value="__new">➕ New category…</option></select>
+          <input name="category_new" id="f-catnew" class="hidden" maxlength="80" placeholder="Type the new category, e.g. Puja Items"></label>
+        <label>Low-stock alert at<input name="min_quantity" id="f-min" type="number" min="0" step="any" inputmode="decimal" placeholder="optional" value="${item?.min_quantity != null ? fq(item.min_quantity) : ""}"></label>
+      </div>
+    </fieldset>
+    <fieldset><legend>3 · Dates &amp; notes <span class="muted small">(optional)</span></legend>
+      <div class="grid">
+        <label>Last update date<span class="inrow"><input type="date" name="last_update_date" id="f-upd" value="${esc(item?.last_update_date || "")}"><button type="button" class="btn sm" data-today="last_update_date">Today</button></span></label>
+        <label>Last payment / purchase date<span class="inrow"><input type="date" name="last_purchase_date" id="f-pur" value="${esc(item?.last_purchase_date || "")}"><button type="button" class="btn sm" data-today="last_purchase_date">Today</button></span></label>
+        <label class="span2">Notes<textarea name="notes" id="f-notes" rows="2" placeholder="Brand, model, warranty, expiry…">${esc(item?.notes || "")}</textarea></label>
+      </div>
+    </fieldset>
+    <fieldset><legend>4 · 📷 Photos <span class="muted small">(optional)</span></legend>
+      <div class="photos"></div>
+      ${cap.assets ? `<div class="row">
+        <label class="btn">📷 Take or choose photos<input type="file" id="f-photos" accept="image/*" multiple hidden></label>
+        <span class="small muted">Photos are shrunk before upload and kept privately with this inventory.</span></div>`
+      : `<div class="small muted">Only the owner or an editor can add photos.</div>`}
+    </fieldset>
+    <div class="alert info dupnote hidden"></div>
+    <div class="actions"><button class="btn primary" type="submit">💾 ${item ? "Save changes" : "Save item"}</button>
+      ${onCancel ? `<button type="button" class="btn" data-cancel>Cancel</button>` : ""}</div>
+  </form>`;
+  const f = $("form", el);
+  const fSel = f.floor, rSel = f.room, sSel = f.section_id, nameIn = $("[name=name]", f);
+
+  let want = item ? item.section_id : +store.get("lastSection") || null;
+  const secOf = id => st.sections.find(s => s.id === id), roomOf = id => st.rooms.find(r => r.id === id);
+  let wantRoom = want && secOf(want) ? secOf(want).room_id : null;
+  let wantFloor = wantRoom && roomOf(wantRoom) ? roomOf(wantRoom).floor_id : null;
+  const opts = (arr, sel) => arr.map(x => `<option value="${x.id}" ${x.id === sel ? "selected" : ""}>${esc(x.name)}</option>`).join("");
+  function fillRooms() {
+    const rooms = st.rooms.filter(r => r.floor_id === +fSel.value);
+    rSel.innerHTML = rooms.length ? opts(rooms, wantRoom) : `<option value="">No rooms yet</option>`;
+    rSel.disabled = !rooms.length; wantRoom = null; fillSecs();
+  }
+  function fillSecs() {
+    const secs = st.sections.filter(s => s.room_id === +rSel.value);
+    sSel.innerHTML = secs.length ? opts(secs, want) : `<option value="">No sections yet</option>`;
+    sSel.disabled = !secs.length; want = null;
+    $(".lochint", f).innerHTML = !st.floors.length ? `No locations yet. <a href="#" data-go="locations">Set them up first</a>.`
+      : !rSel.value ? `This floor has no rooms yet. <a href="#" data-go="locations">Add some</a>.`
+      : !secs.length ? `This room has no storage sections yet. <a href="#" data-go="locations">Add some</a>.` : "";
+    checkDup();
+  }
+  fSel.innerHTML = st.floors.length ? opts(st.floors, wantFloor) : `<option value="">No floors yet</option>`;
+  fSel.disabled = !st.floors.length;
+  fillRooms();
+  fSel.onchange = fillRooms; rSel.onchange = fillSecs; sSel.onchange = checkDup;
+
+  const catNew = f.category_new;
+  f.category.onchange = () => { catNew.classList.toggle("hidden", f.category.value !== "__new"); if (f.category.value === "__new") catNew.focus(); };
+
+  function checkDup() {
+    const box = $(".dupnote", f);
+    if (item) return box.classList.add("hidden");
+    const nm = nameIn.value.trim().toLowerCase(), sid = +sSel.value;
+    const d = nm && sid && S.items.find(i => i.section_id === sid && i.name.toLowerCase() === nm);
+    box.classList.toggle("hidden", !d);
+    if (d) box.innerHTML = `“${esc(d.name)}” already exists here (${fq(d.quantity)} ${esc(d.unit)}). Saving will <b>add</b> to its quantity instead of creating a duplicate.`;
+  }
+  nameIn.oninput = checkDup;
+  $$("[data-today]", f).forEach(b => b.onclick = () => f[b.dataset.today].value = today());
+
+  const box = $(".photos", f);
+  function drawPhotos() {
+    box.innerHTML = (item?.photos || []).map((p, i) => `<div class="ph-tile"><img src="${blobUrl(p.th)}" alt=""><button type="button" title="Delete photo" aria-label="Delete photo" data-delph="${i}">×</button></div>`).join("")
+      + pending.map((p, i) => `<div class="ph-tile"><img src="${p.preview}" alt=""><span class="new">new</span><button type="button" title="Remove" aria-label="Remove photo" data-rmph="${i}">×</button></div>`).join("");
+  }
+  box.onclick = async e => {
+    const d = e.target.dataset;
+    if (d.rmph !== undefined) { URL.revokeObjectURL(pending[+d.rmph].preview); pending.splice(+d.rmph, 1); drawPhotos(); }
+    if (d.delph !== undefined && await ask({ title: "Delete this photo?", message: "It will be removed for good.", ok: "Delete", danger: true })) {
+      try { await api("DELETE", `/api/items/${item.id}/photos/${d.delph}`); item.photos = item.photos.filter((_, i) => i !== +d.delph); drawPhotos(); reload(); toast("Photo deleted."); }
+      catch (err) { toast(err.message, "err"); }
+    }
+  };
+  const fileIn = $("#f-photos", f);
+  if (fileIn) fileIn.onchange = async () => {
+    for (const file of fileIn.files) {
+      try { pending.push(await processFile(file)); } catch (err) { toast(err.message, "err"); }
+    }
+    fileIn.value = ""; drawPhotos();
+  };
+  drawPhotos();
+
+  $("[data-cancel]", f)?.addEventListener("click", onCancel);
+  f.onsubmit = async e => {
+    e.preventDefault();
+    const category = f.category.value === "__new" ? catNew.value.trim() : f.category.value;
+    const payload = { section_id: sSel.value, name: nameIn.value, quantity: f.quantity.value, unit: f.unit.value.trim() || "pcs",
+      category, min_quantity: f.min_quantity.value, last_update_date: f.last_update_date.value,
+      last_purchase_date: f.last_purchase_date.value, notes: f.notes.value };
+    if (!payload.section_id) return toast("Choose where the item is stored (floor, room and storage section).", "err");
+    if (!payload.name.trim()) { nameIn.focus(); return toast("Item name is required.", "err"); }
+    if (payload.quantity === "") { f.quantity.focus(); return toast("Quantity is required.", "err"); }
+    if (!category) { catNew.focus(); return toast("Type a name for the new category.", "err"); }
+    const btn = $("button[type=submit]", f); btn.disabled = true; btn.textContent = "Saving…";
+    try {
+      const r = item ? await api("PUT", `/api/items/${item.id}`, payload) : await api("POST", "/api/items", payload);
+      const id = item ? item.id : r.id;
+      let n = 0, failed = 0;
+      for (const p of pending) {
+        btn.textContent = `Uploading photo ${n + failed + 1} of ${pending.length}…`;
+        try { await api("POST", `/api/items/${id}/photos`, { image: p.image, thumb: p.thumb }); n++; }
+        catch (err) { failed++; toast(err.message, "err"); }
+        URL.revokeObjectURL(p.preview);
+      }
+      store.set("lastSection", payload.section_id); store.set("lastCategory", category);
+      reload();
+      onSaved(id);
+      toast((item ? `Updated “${payload.name.trim()}”.` : r.merged ? `Added ${payload.quantity} to existing “${payload.name.trim()}”.` : `Saved “${payload.name.trim()}”.`)
+            + (n ? ` ${n} photo(s) attached.` : "") + (failed ? ` ${failed} photo(s) failed.` : ""));
+    } catch (err) {
+      toast(err.message, "err"); btn.disabled = false; btn.textContent = item ? "💾 Save changes" : "💾 Save item";
+    }
+  };
+  return f;
+}
+function renderAdd(v) {
+  v.innerHTML = `<h1>➕ Add item</h1><div id="addform"></div>`;
+  itemForm($("#addform", v), null, () => { render(); });
+}
+
+/* ═════════════════════════ item detail ═════════════════════════ */
+function openModal(html) { $("#modalBody").onclick = null; $("#modalBody").innerHTML = html; $("#modal").classList.remove("hidden"); document.body.style.overflow = "hidden"; $("#modal").scrollTop = 0; return $("#modalBody"); }
+function closeModal() { $("#modal").classList.add("hidden"); $("#modalBody").innerHTML = ""; document.body.style.overflow = ""; }
+
+async function openItem(id) {
+  let it;
+  try { it = await api("GET", `/api/items/${id}`); } catch (e) { return toast(e.message, "err"); }
+  const active = it.loans.filter(l => l.status === "Active");
+  const body = openModal(`
+    <div class="detail-top">
+      <div>${it.photos.length
+        ? `<img class="hero" src="${blobUrl(it.photos[0].img)}" alt="">
+           <div class="gal">${it.photos.map((p, i) => `<img src="${blobUrl(p.th)}" data-pidx="${i}" class="${i ? "" : "on"}" alt="">`).join("")}</div>
+           ${cap.downloads ? `<button class="btn sm" data-dlph="0">⬇️ Save full-size photo</button>` : ""}`
+        : `<div class="card empty" style="font-size:44px">${icon(it.category)}<div class="small">No photos. Add some with ✏️ Edit.</div></div>`}</div>
+      <div>
+        <h1 style="margin-top:0;padding-right:40px">${esc(it.name)}</h1>
+        <div class="path">📍 ${esc(it.floor)} › ${esc(it.room)} › <b>${esc(it.section)}</b></div>
+        <div style="margin:12px 0"><span style="font-size:34px;font-weight:700">${fq(it.quantity)}</span> <span class="muted">${esc(it.unit)}</span>
+          ${it.low ? `<span class="badge low">Low stock (alert at ${fq(it.min_quantity)})</span>` : ""}</div>
+        <div class="card pad" style="margin-bottom:12px">
+          <div class="small muted" style="margin-bottom:6px">Quick stock adjustment</div>
+          <div class="inrow"><input type="number" class="delta" id="m-delta" value="1" min="0" step="any" inputmode="decimal" style="max-width:90px">
+            <button class="btn" data-adj="-1">➖ Use</button><button class="btn" data-adj="1">➕ Add</button></div>
+        </div>
+        <dl class="kv">
+          <dt>Category</dt><dd>${esc(it.category)}</dd>
+          <dt>Last update</dt><dd>${nice(it.last_update_date)}</dd>
+          <dt>Last payment / purchase</dt><dd>${nice(it.last_purchase_date)}</dd>
+          ${it.notes ? `<dt>Notes</dt><dd style="white-space:pre-wrap">${esc(it.notes)}</dd>` : ""}
+          <dt>Added</dt><dd class="small muted">${esc(it.created_at)}</dd>
+        </dl>
+        ${active.length ? `<div class="alert warn">🤝 Lent out: ${active.map(l => `${fq(l.quantity)} to <b>${esc(l.borrower)}</b> (due ${nice(l.expected_return)})`).join("; ")}</div>` : ""}
+        <div class="actions" style="margin-top:14px">
+          <button class="btn primary" data-edit>✏️ Edit / move</button>
+          <button class="btn" data-lend>🤝 Lend</button>
+          <span class="spacer"></span>
+          <button class="btn danger" data-delete>🗑️ Delete</button>
+        </div>
+      </div>
+    </div>`);
+  body.onclick = async e => {
+    const t = e.target.closest("button, img[data-pidx]");
+    if (!t) return;
+    if (t.dataset.pidx) {
+      const p = it.photos[+t.dataset.pidx];
+      $(".hero", body).src = blobUrl(p.img);
+      const b = $("[data-dlph]", body); if (b) b.dataset.dlph = t.dataset.pidx;
+      $$(".gal img", body).forEach(i => i.classList.toggle("on", i === t));
+    } else if (t.dataset.dlph !== undefined) {
+      const i = +t.dataset.dlph;
+      try { const r = await fetch(blobUrl(it.photos[i].img)); if (!r.ok) throw 0;
+            await saveFile(`${it.name.replace(/[^\w\- ]+/g, "").trim() || "photo"}_${i + 1}.jpg`, await r.blob()); }
+      catch (err) { toast(err?.message || "Couldn't load that photo.", "err"); }
+    } else if (t.dataset.adj) {
+      const amt = +$(".delta", body).value;
+      if (!(amt > 0)) return toast("Enter an amount above zero.", "err");
+      if (await act(() => api("POST", `/api/items/${id}/adjust`, { delta: amt * +t.dataset.adj }), r => `${it.name}: now ${fq(r.quantity)} ${it.unit}`)) openItem(id);
+    } else if ("edit" in t.dataset) {
+      const wrap = openModal(`<h1 style="margin-top:0;padding-right:40px">✏️ Edit · ${esc(it.name)}</h1><div></div>`);
+      itemForm(wrap.lastElementChild, it, () => { render(); openItem(id); }, () => openItem(id));
+    } else if ("lend" in t.dataset) {
+      closeModal(); S.lendItem = id; S.lendTab = "new"; go("lending");
+    } else if ("delete" in t.dataset) {
+      if (!await ask({ title: `Delete “${it.name}”?`, message: "The item and its photos are removed for good. Lending records keep the name for history.", ok: "Delete", danger: true })) return;
+      if (await act(() => api("DELETE", `/api/items/${id}`), `Deleted “${it.name}”.`)) closeModal();
+    }
+  };
+}
+
+/* ═════════════════════════ items list ═════════════════════════ */
+function renderItems(v) {
+  const cats = [...new Set(S.items.map(i => i.category))].sort();
+  v.innerHTML = `<h1>📋 All items <span class="muted small">(${S.items.length})</span></h1>
+    <div class="row" style="margin-bottom:12px">
+      <input class="flt" id="it-filter" placeholder="Filter by name…" value="${esc(S.itemsFilter)}" style="max-width:260px">
+      <select class="cat" id="it-cat" style="max-width:200px"><option value="">All categories</option>${cats.map(c => `<option ${c === S.itemsCat ? "selected" : ""}>${esc(c)}</option>`).join("")}</select>
+      <select class="sort" id="it-sort" style="max-width:220px">
+        ${[["name","Sort: name"],["loc","Sort: location"],["recent","Sort: recently updated"],["qty","Sort: lowest quantity"]]
+          .map(([k, l]) => `<option value="${k}" ${k === S.itemsSort ? "selected" : ""}>${l}</option>`).join("")}</select>
+      <span class="spacer"></span><button class="btn primary" data-go="add">➕ Add item</button>
+    </div><div class="list"></div>`;
+  const draw = () => {
+    const f = S.itemsFilter.toLowerCase();
+    let list = S.items.filter(i => (!f || i.name.toLowerCase().includes(f)) && (!S.itemsCat || i.category === S.itemsCat));
+    const cmp = { name: byName,
+      loc: (a, b) => a.floor_order - b.floor_order || a.room.localeCompare(b.room) || a.section.localeCompare(b.section) || byName(a, b),
+      recent: (a, b) => String(b.modified_at).localeCompare(String(a.modified_at)), qty: (a, b) => a.quantity - b.quantity }[S.itemsSort];
+    list = list.sort(cmp);
+    $(".list", v).innerHTML = list.length ? list.map(itemCard).join("")
+      : `<div class="card empty">${S.items.length ? "Nothing matches." : `No items yet. <a href="#" data-go="add">Add one</a>.`}</div>`;
+  };
+  $(".flt", v).oninput = e => { S.itemsFilter = e.target.value; draw(); };
+  $(".cat", v).onchange = e => { S.itemsCat = e.target.value; draw(); };
+  $(".sort", v).onchange = e => { S.itemsSort = e.target.value; draw(); };
+  draw();
+}
+
+/* ═════════════════════════ stock ═════════════════════════ */
+function renderStock(v) {
+  const it = S.items;
+  if (!it.length) { v.innerHTML = `<h1>📦 Stock summary</h1><div class="card empty">No items yet.</div>`; return; }
+  const f = S.stock, cats = [...new Set(it.map(i => i.category))].sort();
+  const floors = S.st.floors.filter(fl => it.some(i => i.floor_id === fl.id));
+  const rooms = S.st.rooms.filter(r => (!f.floor || r.floor_id === +f.floor) && it.some(i => i.room_id === r.id));
+  v.innerHTML = `<h1>📦 Stock summary</h1>
+    <div class="row" style="margin-bottom:12px">
+      <select data-f="cat" id="sf-cat" style="max-width:190px"><option value="">All categories</option>${cats.map(c => `<option ${c === f.cat ? "selected" : ""}>${esc(c)}</option>`).join("")}</select>
+      <select data-f="floor" id="sf-floor" style="max-width:170px"><option value="">All floors</option>${floors.map(x => `<option value="${x.id}" ${+f.floor === x.id ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>
+      <select data-f="room" id="sf-room" style="max-width:190px"><option value="">All rooms</option>${rooms.map(x => `<option value="${x.id}" ${+f.room === x.id ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>
+      <label class="chk"><input type="checkbox" data-f="low" id="sf-low" ${f.low ? "checked" : ""}> Low stock only</label>
+    </div>
+    <p class="small muted">Change quantities in the <b>Qty</b> column, then press Save. Tap an item name for details.</p>
+    <div class="tablewrap"><table><thead><tr><th>Item</th><th class="num">Qty</th><th>Unit</th><th>Status</th><th>Location</th><th>Category</th><th>Last update</th><th>Last purchase</th></tr></thead><tbody></tbody></table></div>
+    <div class="savebar hidden"><button class="btn primary save">💾 Save changes</button></div>
+    <h2>Totals by category</h2><div class="tablewrap totals"></div>`;
+  const list = it.filter(i => (!f.cat || i.category === f.cat) && (!f.floor || i.floor_id === +f.floor)
+      && (!f.room || i.room_id === +f.room) && (!f.low || i.low))
+    .sort((a, b) => a.category.localeCompare(b.category) || byName(a, b));
+  $("tbody", v).innerHTML = list.length ? list.map(i => `<tr data-id="${i.id}">
+      <td><a href="#" data-open="${i.id}">${esc(i.name)}</a></td>
+      <td class="num"><input class="qin" type="number" min="0" step="any" inputmode="decimal" value="${fq(i.quantity)}" data-orig="${i.quantity}" aria-label="Quantity of ${esc(i.name)}"></td>
+      <td>${esc(i.unit)}</td>
+      <td>${i.low ? `<span class="badge low">Low</span>` : `<span class="badge ok">OK</span>`}${i.on_loan ? ` <span class="badge lent">${fq(i.on_loan)} lent</span>` : ""}</td>
+      <td class="small">${esc(i.path)}</td><td>${esc(i.category)}</td>
+      <td class="small">${nice(i.last_update_date)}</td><td class="small">${nice(i.last_purchase_date)}</td></tr>`).join("")
+    : `<tr><td colspan="8" class="empty">Nothing matches these filters.</td></tr>`;
+  const byCat = {};
+  for (const i of list) { const c = byCat[i.category] ||= { n: 0, low: 0, lent: 0 }; c.n++; c.low += i.low; c.lent += i.on_loan ? 1 : 0; }
+  $(".totals", v).innerHTML = `<table><thead><tr><th>Category</th><th class="num">Items</th><th class="num">Low stock</th><th class="num">Lent out</th></tr></thead><tbody>${
+    Object.entries(byCat).map(([c, x]) => `<tr><td>${esc(c)}</td><td class="num">${x.n}</td><td class="num">${x.low || ""}</td><td class="num">${x.lent || ""}</td></tr>`).join("")}</tbody></table>`;
+  $$("[data-f]", v).forEach(el => el.onchange = () => {
+    S.stock[el.dataset.f] = el.type === "checkbox" ? el.checked : el.value;
+    if (el.dataset.f === "floor") S.stock.room = "";
+    render();
+  });
+  const dirty = () => $$(".qin", v).filter(i => i.value !== "" && +i.value !== +i.dataset.orig);
+  v.oninput = e => {
+    if (!e.target.classList.contains("qin")) return;
+    e.target.closest("tr").classList.toggle("dirty", +e.target.value !== +e.target.dataset.orig);
+    const n = dirty().length;
+    $(".savebar", v).classList.toggle("hidden", !n);
+    $(".save", v).textContent = `💾 Save ${n} change${n === 1 ? "" : "s"}`;
+  };
+  $(".save", v).onclick = () => {
+    const changes = dirty().map(i => ({ id: +i.closest("tr").dataset.id, quantity: +i.value }));
+    if (changes.some(c => c.quantity < 0)) return toast("Quantities can't be negative.", "err");
+    act(() => api("POST", "/api/stock", { changes }), `Updated ${changes.length} item(s).`);
+  };
+}
+
+/* ═════════════════════════ locations ═════════════════════════ */
+function renderLocations(v) {
+  const st = S.st;
+  if (!st.floors.some(f => f.id === S.selFloor)) S.selFloor = st.floors[0]?.id ?? null;
+  const rooms = st.rooms.filter(r => r.floor_id === S.selFloor);
+  if (!rooms.some(r => r.id === S.selRoom)) S.selRoom = rooms[0]?.id ?? null;
+  const secs = st.sections.filter(s => s.room_id === S.selRoom);
+  const fName = st.floors.find(f => f.id === S.selFloor)?.name, rName = rooms.find(r => r.id === S.selRoom)?.name;
+  const panel = (title, level, list, sel, child, placeholder, parentOk, hint) => `
+    <div class="card panel"><h3>${title} <span class="muted small">${hint || ""}</span></h3>
+      ${parentOk ? `<ul class="loclist">${list.map(x => `<li class="${x.id === sel ? "sel" : ""}" data-pick="${level}:${x.id}">
+          <span class="nm">${esc(x.name)}</span><span class="cnt">${x.n} ${child}</span>
+          <span class="acts">${level === "floors" ? `<button title="Move up" aria-label="Move up" data-move="${x.id}:-1">↑</button><button title="Move down" aria-label="Move down" data-move="${x.id}:1">↓</button>` : ""}
+          <button title="Rename" aria-label="Rename" data-ren="${level}:${x.id}">✎</button><button title="Delete" aria-label="Delete" data-del="${level}:${x.id}">🗑</button></span></li>`).join("")
+          || `<li class="muted small" style="cursor:default">None yet.</li>`}</ul>
+        <textarea data-addtxt="${level}" id="add-${level}" placeholder="${placeholder}"></textarea>
+        <button class="btn sm primary" data-add="${level}">➕ Add (one per line)</button>`
+      : `<div class="muted small">${level === "rooms" ? "Add a floor first." : "Select or add a room first."}</div>`}
+    </div>`;
+  const tree = st.floors.map(f => {
+    const rs = st.rooms.filter(r => r.floor_id === f.id);
+    return `<li><b>🏢 ${esc(f.name)}</b>${rs.length ? `<ul>${rs.map(r => {
+      const ss = st.sections.filter(s => s.room_id === r.id);
+      return `<li>🚪 ${esc(r.name)}${ss.length ? `<ul>${ss.map(s => `<li>🗄️ ${esc(s.name)} <span class="muted small">· ${s.n} item${s.n === 1 ? "" : "s"}</span></li>`).join("")}</ul>` : ` <span class="muted small">(no sections)</span>`}</li>`;
+    }).join("")}</ul>` : ` <span class="muted small">(no rooms)</span>`}</li>`;
+  }).join("");
+  v.innerHTML = `<h1>📍 Locations</h1>
+    <p class="muted">Three levels: <b>Floor → Room → Storage section</b> (furniture, compartment or shelf). Tap a floor to see its rooms, a room to see its sections.</p>
+    <div class="locgrid">
+      ${panel("🏢 Floors", "floors", st.floors, S.selFloor, "rooms", "Ground Floor\n1st Floor\nTerrace", true)}
+      ${panel("🚪 Rooms", "rooms", rooms, S.selRoom, "sections", "Kitchen\nMaster Bedroom\nLiving Room", !!S.selFloor, fName ? `on ${esc(fName)}` : "")}
+      ${panel("🗄️ Storage sections", "sections", secs, null, "items", "Wardrobe Top Shelf\nPantry Cabinet B\nUnder-bed Drawer", !!S.selRoom, rName ? `in ${esc(rName)}` : "")}
+    </div>
+    <div class="cols2" style="margin-top:14px">
+      <div class="card pad tree"><h3>🌳 Overview</h3>${tree ? `<ul style="padding-left:4px;list-style:none">${tree}</ul>` : `<div class="muted">Nothing set up yet.</div>`}</div>
+      <div class="card pad"><h3>🏷️ Categories</h3><p class="small muted">New categories are created as you add items. Tap ✎ to rename one.</p>
+        <ul class="loclist">${st.categories.map(c => `<li style="cursor:default"><span class="nm">${icon(c)} ${esc(c)}</span>
+          <span class="cnt">${S.items.filter(i => i.category === c).length}</span><span class="acts"><button title="Rename" aria-label="Rename ${esc(c)}" data-rencat="${esc(c)}">✎</button></span></li>`).join("")}</ul></div>
+    </div>`;
+  v.onclick = async e => {
+    const t = e.target.closest("[data-move],[data-ren],[data-del],[data-add],[data-rencat],[data-pick]");
+    if (!t) return;
+    const d = t.dataset;
+    if (d.move) { const [id, dir] = d.move.split(":"); return act(() => api("POST", `/api/locations/floors/${id}/move`, { dir: +dir })); }
+    if (d.ren) {
+      const [lv, id] = d.ren.split(":"), cur = st[lv].find(x => x.id === +id);
+      const nm = await ask({ title: `Rename “${cur.name}”`, ok: "Rename", input: { value: cur.name } });
+      if (nm && nm.trim() && nm.trim() !== cur.name) act(() => api("PUT", `/api/locations/${lv}/${id}`, { name: nm.trim() }), "Renamed.");
+      return;
+    }
+    if (d.del) {
+      const [lv, id] = d.del.split(":"), cur = st[lv].find(x => x.id === +id);
+      if (await ask({ title: `Delete “${cur.name}”?`, ok: "Delete", danger: true })) act(() => api("DELETE", `/api/locations/${lv}/${id}`), `Deleted “${cur.name}”.`);
+      return;
+    }
+    if (d.rencat) {
+      const nm = await ask({ title: `Rename category “${d.rencat}”`, message: "Every item in this category moves to the new name.", ok: "Rename", input: { value: d.rencat } });
+      if (nm && nm.trim() && nm.trim() !== d.rencat) act(() => api("POST", "/api/categories/rename", { old: d.rencat, new: nm.trim() }), "Category renamed.");
+      return;
+    }
+    if (d.add) {
+      const names = $(`[data-addtxt=${d.add}]`, v).value.split("\n").map(s => s.trim()).filter(Boolean);
+      if (!names.length) return toast("Type at least one name (one per line).", "err");
+      const parent_id = d.add === "rooms" ? S.selFloor : d.add === "sections" ? S.selRoom : null;
+      act(() => api("POST", `/api/locations/${d.add}`, { names, parent_id }),
+          r => `Added ${r.added}.` + (r.duplicates.length ? ` Skipped existing: ${r.duplicates.join(", ")}.` : ""));
+      return;
+    }
+    if (d.pick) {
+      const [lv, id] = d.pick.split(":");
+      if (lv === "floors") { S.selFloor = +id; S.selRoom = null; }
+      if (lv === "rooms") S.selRoom = +id;
+      if (lv !== "sections") render();
+    }
+  };
+}
+
+/* ═════════════════════════ lending ═════════════════════════ */
+function loanTable(list) {
+  return `<div class="tablewrap"><table><thead><tr><th>Item</th><th class="num">Qty</th><th>Borrower</th><th>Status</th><th>Lent</th><th>Due</th><th>Returned</th><th>Contact</th><th>Notes</th></tr></thead><tbody>${
+    list.map(l => `<tr><td>${esc(l.item_name)}</td><td class="num">${fq(l.quantity)}</td><td>${esc(l.borrower)}</td>
+      <td>${l.status === "Active" ? (l.expected_return && l.expected_return < today() ? `<span class="badge over">Overdue</span>` : `<span class="badge lent">Active</span>`) : `<span class="badge ok">Returned</span>`}</td>
+      <td>${nice(l.date_lent)}</td><td>${nice(l.expected_return)}</td><td>${nice(l.returned_on)}</td><td>${esc(l.contact || "")}</td>
+      <td class="small">${esc(l.notes || "")}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function renderLending(v) {
+  const act_ = activeLoans();
+  v.innerHTML = `<h1>🤝 Lending tracker</h1>
+    <div class="seg">${[["active", `Active (${act_.length})`], ["new", "➕ Lend"], ["history", "History"]]
+      .map(([k, l]) => `<button data-lt="${k}" class="${S.lendTab === k ? "on" : ""}">${l}</button>`).join("")}</div>
+    <div class="lbody"></div>`;
+  $(".seg", v).onclick = e => { if (e.target.dataset.lt) { S.lendTab = e.target.dataset.lt; render(); } };
+  const b = $(".lbody", v);
+  if (S.lendTab === "active") {
+    b.innerHTML = act_.length ? `<div class="list">${act_.map(l => {
+      const over = l.expected_return && l.expected_return < today();
+      const dd = l.expected_return ? daysBetween(today(), l.expected_return) : null;
+      return `<div class="card pad"><div class="row">
+        <div style="flex:1;min-width:200px"><div style="font-weight:650;font-size:16px">${esc(l.item_name)} <span class="muted">× ${fq(l.quantity)}</span></div>
+          <div class="small">👤 <b>${esc(l.borrower)}</b>${l.contact ? ` · 📞 ${esc(l.contact)}` : ""}${l.notes ? ` · 📝 ${esc(l.notes)}` : ""}</div>
+          <div class="small muted">Lent ${nice(l.date_lent)} · Due ${nice(l.expected_return)}${l.stock_deducted ? " · taken out of stock" : ""}</div></div>
+        <div>${dd == null ? `<span class="badge lent">No due date</span>` : over ? `<span class="badge over">Overdue ${-dd} day${-dd === 1 ? "" : "s"}</span>`
+          : `<span class="badge ok">${dd === 0 ? "Due today" : `Due in ${dd} day${dd === 1 ? "" : "s"}`}</span>`}</div>
+        <div class="row"><button class="btn primary sm" data-ret="${l.id}">✅ Returned</button>
+          <button class="btn sm" data-due="${l.id}">📅 Change due date</button>
+          <button class="btn sm danger" data-dl="${l.id}" title="Delete record" aria-label="Delete record">🗑</button></div>
+      </div></div>`; }).join("")}</div>`
+      : `<div class="card empty">Nothing is lent out right now. 🎉<br><br><button class="btn primary" data-lt2="new">➕ Lend something</button></div>`;
+    b.onclick = async e => {
+      const d = e.target.closest("button")?.dataset || {};
+      if (d.lt2) { S.lendTab = "new"; return render(); }
+      const ln = S.loans.find(x => x.id === +(d.ret || d.due || d.dl));
+      if (!ln) return;
+      if (d.ret) act(() => api("POST", `/api/loans/${d.ret}/return`), r => `${ln.item_name} returned by ${ln.borrower}.${r.restored ? " Stock restored." : ""}`);
+      if (d.due) {
+        const nd = await ask({ title: "New expected return date", ok: "Save", input: { type: "date", value: ln.expected_return || addDays(today(), 7) } });
+        if (nd !== null) act(() => api("PUT", `/api/loans/${d.due}`, { expected_return: nd.trim() }), "Due date updated.");
+      }
+      if (d.dl && await ask({ title: `Delete this lending record?`, message: `“${ln.item_name}” lent to ${ln.borrower}.${ln.stock_deducted && ln.status === "Active" ? "\nThe quantity goes back into stock." : ""}`, ok: "Delete", danger: true }))
+        act(() => api("DELETE", `/api/loans/${d.dl}`), "Record deleted.");
+    };
+  }
+  if (S.lendTab === "new") {
+    const items = [...S.items].sort(byName), pre = S.lendItem; S.lendItem = null;
+    const src = items.length ? "inv" : "other";
+    b.innerHTML = `<form class="card pad" novalidate style="max-width:760px">
+      <div class="seg srcseg"><button type="button" data-src="inv" class="${src === "inv" ? "on" : ""}" ${items.length ? "" : "disabled"}>From my inventory</button>
+        <button type="button" data-src="other" class="${src === "other" ? "on" : ""}">Something else</button></div>
+      <div class="grid">
+        <div class="span2 inv ${src === "inv" ? "" : "hidden"}"><label>Item<input class="ifilter" id="l-filter" placeholder="Type to narrow the list…" style="margin-bottom:6px">
+          <select name="item_id" id="l-item">${items.map(i => `<option value="${i.id}" ${i.id === pre ? "selected" : ""}>${esc(i.name)} · ${esc(i.path)} (${fq(i.quantity)} ${esc(i.unit)})</option>`).join("")}</select></label></div>
+        <label class="span2 oth ${src === "other" ? "" : "hidden"}">Item name *<input name="item_name" id="l-name" maxlength="200" placeholder="e.g. Drill machine"></label>
+        <label>Quantity *<input name="quantity" id="l-qty" type="number" min="0" step="any" inputmode="decimal" value="1"></label>
+        <label class="chk inv ${src === "inv" ? "" : "hidden"}"><input type="checkbox" name="deduct" id="l-deduct" checked> <span>Take out of stock while lent<br><span class="small muted">(put back automatically on return)</span></span></label>
+        <label>Borrower *<input name="borrower" id="l-borrower" list="dl-borrowers" maxlength="120" placeholder="Name"></label>
+        <label>Contact<input name="contact" id="l-contact" maxlength="120" placeholder="Phone (optional)"></label>
+        <label>Date lent<input type="date" name="date_lent" id="l-lent" value="${today()}"></label>
+        <label>Expected return date<input type="date" name="expected_return" id="l-due" value="${addDays(today(), 14)}"></label>
+        <label class="span2">Notes<input name="notes" id="l-notes" maxlength="1000" placeholder="optional"></label>
+      </div>
+      <div class="actions" style="margin-top:12px"><button class="btn primary" type="submit">💾 Record loan</button></div></form>`;
+    const f = $("form", b);
+    let mode = src;
+    $(".srcseg", f).onclick = e => {
+      const s = e.target.dataset.src; if (!s) return;
+      mode = s;
+      $$(".srcseg button", f).forEach(x => x.classList.toggle("on", x.dataset.src === s));
+      $$(".inv", f).forEach(x => x.classList.toggle("hidden", s !== "inv"));
+      $$(".oth", f).forEach(x => x.classList.toggle("hidden", s !== "other"));
+    };
+    $(".ifilter", f)?.addEventListener("input", e => {
+      const q = e.target.value.toLowerCase();
+      let first = null;
+      for (const o of f.item_id.options) { const show = o.text.toLowerCase().includes(q); o.hidden = !show; o.disabled = !show; if (show && !first) first = o; }
+      if (first && f.item_id.selectedOptions[0]?.hidden) f.item_id.value = first.value;
+    });
+    f.onsubmit = async e => {
+      e.preventDefault();
+      const p = { quantity: f.quantity.value, borrower: f.borrower.value, contact: f.contact.value,
+                  date_lent: f.date_lent.value, expected_return: f.expected_return.value, notes: f.notes.value };
+      if (mode === "inv") { p.item_id = +f.item_id.value || null; p.deduct = f.deduct.checked; if (!p.item_id) return toast("Pick an item.", "err"); }
+      else { p.item_name = f.item_name.value; if (!p.item_name.trim()) return toast("Item name is required.", "err"); }
+      if (!p.borrower.trim()) { f.borrower.focus(); return toast("Borrower name is required.", "err"); }
+      const r = await act(() => api("POST", "/api/loans", p), "Loan recorded.");
+      if (r) { S.lendTab = "active"; render(); }
+    };
+  }
+  if (S.lendTab === "history") {
+    b.innerHTML = S.loans.length ? `<input class="hf" id="l-hist" placeholder="Filter by item or borrower…" style="max-width:320px;margin-bottom:10px"><div class="ht"></div>
+      <h2>By borrower</h2><div class="bt"></div>` : `<div class="card empty">No lending history yet.</div>`;
+    if (!S.loans.length) return;
+    const allL = [...S.loans].sort((a, b) => String(b.date_lent).localeCompare(String(a.date_lent)) || b.id - a.id);
+    const draw = q => { $(".ht", b).innerHTML = loanTable(allL.filter(l => !q || `${l.item_name} ${l.borrower}`.toLowerCase().includes(q))); };
+    $(".hf", b).oninput = e => draw(e.target.value.toLowerCase());
+    draw("");
+    const by = {};
+    for (const l of allL) { const x = by[l.borrower] ||= { n: 0, out: 0 }; x.n++; x.out += l.status === "Active"; }
+    $(".bt", b).innerHTML = `<div class="tablewrap"><table><thead><tr><th>Borrower</th><th class="num">Times borrowed</th><th class="num">Still out</th></tr></thead><tbody>${
+      Object.entries(by).sort((a, b) => b[1].out - a[1].out || b[1].n - a[1].n).map(([k, x]) => `<tr><td>${esc(k)}</td><td class="num">${x.n}</td><td class="num">${x.out || ""}</td></tr>`).join("")}</tbody></table></div>`;
+  }
+}
+
+/* ═════════════════════════ files: CSV, Excel, JSON backup ═════════════════════════ */
+async function saveFile(filename, data) {
+  if (!cap.downloads) throw E(0, "Saving files isn't available in this view.");
+  try { await cap.downloads.save({ filename, data }); return true; }
+  catch (e) {
+    if (e?.code === "declined") return false;
+    throw E(0, e?.code === "rate_limited" ? "A save is already open. Finish that one first." : `Couldn't save the file (${e?.message || e?.code || "unknown error"}).`);
+  }
+}
+const EXPORT_COLS = ["name","quantity","unit","category","floor","room","section","min_quantity","last_update_date","last_purchase_date","notes"];
+const csvCell = v => { if (v == null) return ""; const s = String(v); return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+const toCSV = rows => "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+function parseCSV(textIn) {
+  const t = textIn.replace(/^﻿/, ""), first = t.split(/\r?\n/, 1)[0] || "";
+  const delim = first.includes(";") && !first.includes(",") ? ";" : first.includes("\t") && !first.includes(",") ? "\t" : ",";
+  const rows = []; let row = [], field = "", q = false;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (q) { if (c === '"') { if (t[i + 1] === '"') { field += '"'; i++; } else q = false; } else field += c; }
+    else if (c === '"') q = true;
+    else if (c === delim) { row.push(field); field = ""; }
+    else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+    else if (c !== "\r") field += c;
+  }
+  if (field !== "" || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(x => x.trim() !== ""));
+}
+function exportItems() {
+  return [...S.items].sort((a, b) => a.floor_order - b.floor_order || a.room.localeCompare(b.room) || a.section.localeCompare(b.section) || byName(a, b));
+}
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = u => { let c = 0xFFFFFFFF; for (let i = 0; i < u.length; i++) c = CRC_T[(c ^ u[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+function zipStore(files) {
+  const enc = new TextEncoder(), parts = [], cd = []; let off = 0;
+  for (const f of files) {
+    const name = enc.encode(f.name), data = enc.encode(f.data), crc = crc32(data);
+    const h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(12, 33, true);
+    h.setUint32(14, crc, true); h.setUint32(18, data.length, true); h.setUint32(22, data.length, true); h.setUint16(26, name.length, true);
+    parts.push(new Uint8Array(h.buffer), name, data);
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(14, 33, true);
+    c.setUint32(16, crc, true); c.setUint32(20, data.length, true); c.setUint32(24, data.length, true); c.setUint16(28, name.length, true); c.setUint32(42, off, true);
+    cd.push(new Uint8Array(c.buffer), name);
+    off += 30 + name.length + data.length;
+  }
+  const cdSize = cd.reduce((s, p) => s + p.length, 0), e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true); e.setUint32(12, cdSize, true); e.setUint32(16, off, true);
+  return new Blob([...parts, ...cd, new Uint8Array(e.buffer)], { type: "application/zip" });
+}
+const xmlEsc = s => String(s).replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const colName = n => { let s = ""; while (n) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };
+function sheetXml(header, data) {
+  const widths = header.map(h => String(h).length), out = [];
+  [header, ...data].forEach((row, ri) => {
+    const cells = [];
+    row.forEach((v, ci) => {
+      if (v == null || v === "") return;
+      const ref = colName(ci + 1) + (ri + 1), st = ri === 0 ? ' s="1"' : "";
+      cells.push(typeof v === "number" ? `<c r="${ref}"${st}><v>${v}</v></c>` : `<c r="${ref}"${st} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`);
+      widths[ci] = Math.max(widths[ci], Math.min(String(v).length, 60));
+    });
+    out.push(`<row r="${ri + 1}">${cells.join("")}</row>`);
+  });
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    + '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+    + `<cols>${widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w + 3}" customWidth="1"/>`).join("")}</cols><sheetData>${out.join("")}</sheetData></worksheet>`;
+}
+function buildXlsx(sheets) {
+  const ns = "http://schemas.openxmlformats.org", x = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>', n = sheets.length;
+  const files = [
+    { name: "[Content_Types].xml", data: `${x}<Types xmlns="${ns}/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>` },
+    { name: "_rels/.rels", data: `${x}<Relationships xmlns="${ns}/package/2006/relationships"><Relationship Id="rId1" Type="${ns}/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>` },
+    { name: "xl/workbook.xml", data: `${x}<workbook xmlns="${ns}/spreadsheetml/2006/main" xmlns:r="${ns}/officeDocument/2006/relationships"><sheets>${sheets.map(([nm], i) => `<sheet name="${xmlEsc(nm.slice(0, 31))}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("")}</sheets></workbook>` },
+    { name: "xl/_rels/workbook.xml.rels", data: `${x}<Relationships xmlns="${ns}/package/2006/relationships">${sheets.map((_, i) => `<Relationship Id="rId${i + 1}" Type="${ns}/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("")}<Relationship Id="rId${n + 1}" Type="${ns}/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` },
+    { name: "xl/styles.xml", data: `${x}<styleSheet xmlns="${ns}/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>` },
+    ...sheets.map(([, h, rows], i) => ({ name: `xl/worksheets/sheet${i + 1}.xml`, data: sheetXml(h, rows) })),
+  ];
+  return zipStore(files);
+}
+function workbook() {
+  const locs = [];
+  for (const f of S.st.floors) {
+    const rs = S.st.rooms.filter(r => r.floor_id === f.id);
+    if (!rs.length) locs.push([f.name, null, null, null]);
+    for (const r of rs) {
+      const ss = S.st.sections.filter(s => s.room_id === r.id);
+      if (!ss.length) locs.push([f.name, r.name, null, null]);
+      for (const s of ss) locs.push([f.name, r.name, s.name, s.n]);
+    }
+  }
+  return buildXlsx([
+    ["Items", ["Item","Quantity","Unit","Category","Floor","Room","Storage section","Low-stock at","On loan","Last update","Last payment/purchase","Notes","Photos"],
+      exportItems().map(i => [i.name, i.quantity, i.unit, i.category, i.floor, i.room, i.section, i.min_quantity, i.on_loan || null,
+        i.last_update_date, i.last_purchase_date, i.notes, i.photo_count || null])],
+    ["Lending", ["Item","Quantity","Borrower","Contact","Date lent","Expected return","Returned on","Status","Notes"],
+      [...S.loans].sort((a, b) => String(b.date_lent).localeCompare(String(a.date_lent)))
+        .map(l => [l.item_name, l.quantity, l.borrower, l.contact, l.date_lent, l.expected_return, l.returned_on, l.status, l.notes])],
+    ["Locations", ["Floor","Room","Storage section","Items"], locs],
+  ]);
+}
+const blobToDataURL = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b); });
+async function dataURLtoBlob(u) { return (await fetch(u)).blob(); }
+async function buildBackup(withPhotos, progress) {
+  const data = { app: "nestory", format: 1, exported_at: nowStr(), floors: all("floors"), rooms: all("rooms"), sections: all("sections"),
+                 items: all("items"), loans: all("loans"), categories: CATS };
+  if (withPhotos) {
+    const ids = [...new Set(all("items").flatMap(i => (i.photos || []).flatMap(p => [p.img, p.th])).filter(Boolean))];
+    data.photos = {};
+    let k = 0;
+    for (const id of ids) {
+      progress(`Packing photo ${++k} of ${ids.length}…`);
+      try { const r = await fetch(blobUrl(id)); if (r.ok) data.photos[id] = await blobToDataURL(await r.blob()); } catch {}
+    }
+  }
+  return JSON.stringify(data);
+}
+
+/* CSV import: same columns as the PC version's template and "Items as CSV" export. */
+function importCSV(textIn) {
+  const rows = parseCSV(textIn);
+  if (!rows.length) throw E(400, "The CSV file is empty.");
+  const head = rows[0].map(h => h.trim().toLowerCase().replace(/ /g, "_"));
+  const missing = ["name","quantity","floor","room","section"].filter(k => !head.includes(k));
+  if (missing.length) throw E(400, "Missing required column(s): " + missing.join(", "));
+  let added = 0; const errors = [];
+  rows.slice(1).forEach((r, n) => {
+    const row = Object.fromEntries(head.map((h, i) => [h, r[i]]));
+    try {
+      const [fl, rm, sc] = ["floor","room","section"].map(k => text(row[k], k[0].toUpperCase() + k.slice(1), true, 120));
+      const o = { name: text(row.name, "Name", true, 200), quantity: number(row.quantity, "Quantity", true),
+        unit: text(row.unit, "Unit", false, 30) || "pcs", min_quantity: number(row.min_quantity, "min_quantity"),
+        last_update_date: isoDate(row.last_update_date, "last_update_date"), last_purchase_date: isoDate(row.last_purchase_date, "last_purchase_date"),
+        notes: text(row.notes, "Notes", false, 4000) };
+      const cat = text(row.category, "Category", false, 80);
+      let f = all("floors").find(x => low(x.name) === low(fl));
+      if (!f) put("floors", f = { id: nid(), name: fl, sort_order: Math.max(0, ...all("floors").map(x => x.sort_order || 0)) + 1 });
+      let rr = all("rooms").find(x => x.floor_id === f.id && low(x.name) === low(rm));
+      if (!rr) put("rooms", rr = { id: nid(), floor_id: f.id, name: rm });
+      let s = all("sections").find(x => x.room_id === rr.id && low(x.name) === low(sc));
+      if (!s) put("sections", s = { id: nid(), room_id: rr.id, name: sc });
+      const ts = nowStr();
+      put("items", { id: nid(), ...o, category: cat ? canonCategory(cat) : "Miscellaneous", section_id: s.id, photos: [], created_at: ts, modified_at: ts });
+      added++;
+    } catch (e) { errors.push(`Row ${n + 2}: ${e.message}`); }
+  });
+  return { added, errors };
+}
+
+/* Restore: replaces everything with a .json backup made by this page. */
+const pickNum = v => (v == null || v === "" || !Number.isFinite(+v)) ? null : +v;
+const pickStr = v => v == null || v === "" ? null : String(v);
+function cleanBackup(d) {
+  if (!d || d.app !== "nestory" || !Array.isArray(d.items)) throw E(400, "That isn't a Nestory backup file (.json made on the Backup page).");
+  const ok = x => x && Number.isFinite(+x.id);
+  return {
+    floors: (d.floors || []).filter(ok).map(x => ({ id: +x.id, name: String(x.name || "Floor"), sort_order: pickNum(x.sort_order) ?? 0 })),
+    rooms: (d.rooms || []).filter(ok).map(x => ({ id: +x.id, floor_id: +x.floor_id, name: String(x.name || "Room") })),
+    sections: (d.sections || []).filter(ok).map(x => ({ id: +x.id, room_id: +x.room_id, name: String(x.name || "Section") })),
+    items: d.items.filter(ok).map(x => ({ id: +x.id, name: String(x.name || "Item"), quantity: Math.max(0, pickNum(x.quantity) ?? 0), unit: pickStr(x.unit) || "pcs",
+      category: pickStr(x.category) || "Miscellaneous", section_id: +x.section_id, min_quantity: pickNum(x.min_quantity),
+      last_update_date: pickStr(x.last_update_date), last_purchase_date: pickStr(x.last_purchase_date), notes: pickStr(x.notes),
+      photos: (Array.isArray(x.photos) ? x.photos : []).filter(p => p && p.img && p.th).map(p => ({ img: String(p.img), th: String(p.th) })),
+      created_at: pickStr(x.created_at) || nowStr(), modified_at: pickStr(x.modified_at) || nowStr() })),
+    loans: (d.loans || []).filter(ok).map(x => ({ id: +x.id, item_id: pickNum(x.item_id), item_name: String(x.item_name || "Item"), quantity: pickNum(x.quantity) ?? 1,
+      borrower: String(x.borrower || "?"), contact: pickStr(x.contact), date_lent: pickStr(x.date_lent) || today(), expected_return: pickStr(x.expected_return),
+      returned_on: pickStr(x.returned_on), status: x.status === "Returned" ? "Returned" : "Active", stock_deducted: x.stock_deducted ? 1 : 0, notes: pickStr(x.notes) })),
+    categories: { custom: (d.categories?.custom || []).map(String), hidden: (d.categories?.hidden || []).map(String) },
+    photos: d.photos && typeof d.photos === "object" ? d.photos : null,
+  };
+}
+async function restoreBackup(b, progress) {
+  if (b.photos && cap.assets) {
+    const have = new Set((await cap.assets.list()).assets.map(a => a.id)), map = {};
+    const need = Object.keys(b.photos).filter(id => !have.has(id));
+    let k = 0;
+    for (const id of need) {
+      progress(`Uploading photo ${++k} of ${need.length}…`);
+      try { map[id] = (await uploadJpeg(await dataURLtoBlob(b.photos[id]))).id; } catch {}
+    }
+    for (const it of b.items) it.photos = it.photos.map(p => ({ img: map[p.img] || p.img, th: map[p.th] || p.th }));
+  }
+  progress("Saving records…");
+  const jobs = [];
+  for (const c of COLLS) {
+    const keep = new Set(b[c].map(x => String(x.id)));
+    for (const id of [...DB[c].keys()]) if (!keep.has(id)) jobs.push(del(c, id));
+    for (const x of b[c]) jobs.push(put(c, x));
+  }
+  jobs.push(saveCats(b.categories));
+  const res = await Promise.allSettled(jobs);
+  return { items: b.items.length, failed: res.filter(r => r.status === "rejected").length };
+}
+
+/* ═════════════════════════ backup & data page ═════════════════════════ */
+async function renderData(v) {
+  const nPhotos = all("items").reduce((n, i) => n + (i.photos?.length || 0), 0);
+  const dl = !!cap.downloads;
+  v.innerHTML = `<h1>💾 Backup &amp; data</h1>
+    <div class="alert info">🔒 Everything you enter is saved automatically to this inventory's private storage on claude.ai.
+      Open the same link on your iPhone, iPad or PC while signed in and you'll see the same items. No one else can see it unless you share it.
+      <div class="small" style="margin-top:6px">${S.items.length} items · ${S.loans.length} lending records · ${nPhotos} photos <span class="usage"></span></div></div>
+    ${dl ? "" : `<div class="alert warn">Saving files isn't available in this view. Open the inventory in the Claude app or at claude.ai to download backups.</div>`}
+
+    <h2>1 · Keep a copy outside Claude</h2>
+    <div class="row"><button class="btn primary" data-bk ${dl ? "" : "disabled"}>⬇️ Download backup (.json)</button>
+      <label class="chk"><input type="checkbox" id="bk-photos"> Include photos <span class="small muted">(bigger file)</span></label></div>
+    <p class="small muted">On iPhone, choose <b>Save to Files</b>, then pick iCloud Drive or Google Drive. A backup with photos can rebuild everything, even if this inventory were deleted.</p>
+    <div class="small muted bkstat"></div>
+
+    <h2>2 · Export to a spreadsheet</h2>
+    <div class="row"><button class="btn" data-xlsx ${dl ? "" : "disabled"}>📊 Excel workbook (items, lending, locations)</button>
+      <button class="btn" data-csv ${dl ? "" : "disabled"}>📄 Items as CSV</button></div>
+
+    <h2>3 · Bulk import items from CSV</h2>
+    <p class="small muted">Columns: <code>name, quantity, unit, category, floor, room, section, min_quantity, last_update_date, last_purchase_date, notes</code>.
+      Required: name, quantity, floor, room, section. Missing floors, rooms, sections and categories are created for you.
+      The PC version's <b>Items as CSV</b> export imports here as it is (photos stay on the PC).</p>
+    <div class="row"><button class="btn" data-tpl ${dl ? "" : "disabled"}>⬇️ Download template</button>
+      <label class="btn">📥 Import a CSV file…<input type="file" id="in-csv" accept=".csv,text/csv,text/plain" hidden data-import></label></div>
+    <div class="impres">${S.importErrors?.length ? `<div class="alert warn"><b>Skipped rows:</b><ul class="small">${S.importErrors.slice(0, 50).map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}</div>
+
+    <h2>4 · Restore from a backup</h2>
+    <p class="small muted">Replaces <b>all</b> current items, locations and lending records with a .json backup from this page. Download a fresh backup first if you might want today's data back.</p>
+    <label class="btn danger">♻️ Choose backup file (.json)…<input type="file" id="in-restore" accept=".json,application/json" hidden data-restore></label>
+    <div class="small muted rsstat" style="margin-top:8px"></div>`;
+  S.importErrors = null;
+  if (cap.assets) cap.assets.list().then(r => { const u = $(".usage", v); if (u && r?.usage) u.textContent = `· photo storage ${kb(r.usage.bytes)} of ${kb(r.usage.maxBytes)}`; }).catch(() => {});
+  const stat = $(".bkstat", v);
+  $("[data-bk]", v).onclick = async e => {
+    const btn = e.currentTarget; btn.disabled = true;
+    try {
+      const json = await buildBackup($("#bk-photos", v).checked, m => stat.textContent = m);
+      stat.textContent = "";
+      if (await saveFile(`nestory_backup_${today()}.json`, new Blob([json], { type: "application/json" }))) toast("Backup saved.");
+    } catch (err) { toast(err.message, "err"); stat.textContent = ""; }
+    btn.disabled = false;
+  };
+  $("[data-xlsx]", v).onclick = () => saveFile(`nestory_export_${today()}.xlsx`, workbook()).then(ok => ok && toast("Excel file saved."), err => toast(err.message, "err"));
+  $("[data-csv]", v).onclick = () => saveFile(`nestory_items_${today()}.csv`,
+      toCSV([EXPORT_COLS, ...exportItems().map(i => EXPORT_COLS.map(k => i[k]))])).then(ok => ok && toast("CSV saved."), err => toast(err.message, "err"));
+  $("[data-tpl]", v).onclick = () => saveFile("nestory_import_template.csv", toCSV([EXPORT_COLS,
+      ["Basmati rice", 25, "kg", "Groceries", "Ground Floor", "Kitchen", "Pantry Cabinet B", 5, "2026-10-24", "2026-10-20", "Jeera masino"],
+      ["Winter jacket", 2, "pcs", "Clothing", "1st Floor", "Master Bedroom", "Wardrobe Top Shelf", "", "", "", ""]])).catch(err => toast(err.message, "err"));
+  $("[data-import]", v).onchange = async e => {
+    const file = e.target.files[0]; e.target.value = "";
+    if (!file) return;
+    const buf = await file.arrayBuffer();
+    let txt; try { txt = new TextDecoder("utf-8", { fatal: true }).decode(buf); } catch { txt = new TextDecoder("windows-1252").decode(buf); }
+    const r = await act(() => importCSV(txt), r => `Imported ${r.added} item(s).${r.errors.length ? ` ${r.errors.length} row(s) skipped.` : ""}`);
+    if (r && r.errors?.length) { S.importErrors = r.errors; render(); }
+  };
+  $("[data-restore]", v).onchange = async e => {
+    const file = e.target.files[0]; e.target.value = "";
+    if (!file) return;
+    let b;
+    try { b = cleanBackup(JSON.parse(await file.text())); } catch (err) { return toast(err.status ? err.message : "That file couldn't be read as a Nestory backup.", "err"); }
+    if (!await ask({ title: "Replace everything?", message: `“${file.name}” has ${b.items.length} items, ${b.sections.length} storage sections and ${b.loans.length} lending records.\n\nAll current data will be replaced.`, ok: "Replace all data", danger: true })) return;
+    const rs = $(".rsstat", v);
+    const r = await act(() => restoreBackup(b, m => rs.textContent = m),
+      r => `Restored ${r.items} items.` + (r.failed ? ` ${r.failed} record(s) didn't save; try the restore again.` : ""));
+    if (rs.isConnected) rs.textContent = "";
+    return r;
+  };
+}
+
+/* ═════════════════════════ events & boot ═════════════════════════ */
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-go]");
+  if (g) { e.preventDefault(); closeModal(); return go(g.dataset.go); }
+  const t = e.target.closest("[data-tab]");
+  if (t) return go(t.dataset.tab);
+  const o = e.target.closest("[data-open]");
+  if (o && !e.target.closest("input")) { e.preventDefault(); return openItem(+o.dataset.open); }
+  if (e.target.closest("[data-close]") || e.target.id === "modal") closeModal();
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !$("#modal").classList.contains("hidden") && !$("#dlg").open) closeModal();
+  if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); $("#q").focus(); }
+});
+$("#q").addEventListener("input", e => { S.q = e.target.value; render(); });
+
+/** Another device changed something: refresh the screen unless the person is mid-edit here. */
+let softTimer = 0;
+function softRender() {
+  clearTimeout(softTimer);
+  softTimer = setTimeout(() => {
+    reload();
+    const busy = S.tab === "add" || !$("#modal").classList.contains("hidden") || $("#dlg").open
+      || ["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName) || $(".savebar:not(.hidden)");
+    if (!busy) render();
+  }, 250);
+}
+function onLoaded(key) {
+  loaded.add(key);
+  if (!ready && loaded.size === COLLS.length + 1) { ready = true; clearTimeout(bootTimer); syncUI(); refresh(); }
+}
+function onDbError(e) {
+  if (e?.code === "revoked" || e?.code === "not_granted") { cap.db = null; syncUI(); }
+  if (!ready) $("#view").innerHTML = `<div class="alert err">Your inventory couldn't be loaded (${esc(e?.message || e?.code || "unknown error")}). Reload the page to try again.</div>`;
+  else toast(dbMsg(e), "err");
+}
+let bootTimer = 0;
+(async () => {
+  render();
+  if (!window.claude?.use) {
+    $("#view").innerHTML = `<div class="alert warn">Nestory keeps your inventory in your claude.ai account, so it only works when opened from its claude.ai link (in the Claude app or a browser where you're signed in).</div>`;
+    $("#sync span").textContent = "Not connected"; $("#sync").className = "bad";
+    return;
+  }
+  const [dbx, as, dl] = await Promise.all(["db", "assets", "downloads"].map(n => claude.use(n).catch(() => null)));
+  cap.assets = as; cap.downloads = dl;
+  if (!dbx) {
+    $("#view").innerHTML = `<div class="alert warn">Your inventory can't be reached from this view. Open it from its claude.ai link while signed in to the account that owns it.</div>`;
+    syncUI(); return;
+  }
+  cap.db = dbx; syncUI();
+  bootTimer = setTimeout(() => { if (!ready) $("#view").innerHTML = `<div class="card empty">Still connecting… Your inventory appears as soon as the connection is back.</div>`; }, 10000);
+  for (const c of COLLS) {
+    dbx.collection(c).onSnapshot(snap => {
+      const m = new Map();
+      for (const d of snap.docs) { const x = d.data(); if (x) m.set(d.id, x); }
+      const old = DB[c];
+      const changed = m.size !== old.size || [...m].some(([k, x]) => !old.has(k) || stable(old.get(k)) !== stable(x));
+      DB[c] = m;
+      if (ready) { if (changed) softRender(); } else onLoaded(c);
+    }, onDbError);
+  }
+  dbx.doc("settings/categories").onSnapshot(snap => {
+    const d = snap.exists ? snap.data() : null;
+    const next = { custom: Array.isArray(d?.custom) ? [...d.custom] : [], hidden: Array.isArray(d?.hidden) ? [...d.hidden] : [] };
+    const changed = stable(next) !== stable(CATS);
+    CATS = next;
+    if (ready) { if (changed) softRender(); } else onLoaded("settings");
+  }, onDbError);
+})();
+</script>
+
+</body></html>
